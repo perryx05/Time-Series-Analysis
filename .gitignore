@@ -1,0 +1,9 @@
+# Local/reference files
+requirement_rubric.md
+skeleton.R
+
+# OS files
+.DS_Store
+
+# Reference notes (do not commit)
+Time Series Notes/
