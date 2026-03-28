@@ -7,12 +7,9 @@
 # SECTION 0: Set up and load packages
 # =============================================================================
 
-# Base R workflow (no extra packages needed for Section 0-1)
-# Optional packages for later sections:
-# install.packages(c("tseries", "forecast", "ggplot2"))
+# Base R workflow: Sections 0–6 only (data → visuals → MA → ACF/PACF → differencing → ADF).
+# install.packages("tseries") once if needed for adf.test.
 # library(tseries)
-# library(forecast)
-# library(ggplot2)
 
 options(stringsAsFactors = FALSE)
 options(scipen = 999)
@@ -149,3 +146,195 @@ tfr_test <- window(tfr_ts, start = 2013, end = 2024)
 
 # Optional: save the (possibly type-normalised) cleaned table
 write.csv(eda_df, "cleaned_tlb_tfr_1960_2024.csv", row.names = FALSE)
+
+
+# =============================================================================
+# SECTION 3: Visualisation
+# =============================================================================
+
+# Keep all figures in one folder
+dir.create("plots", showWarnings = FALSE)
+
+# 3.1 First look at both series (practical-style exploratory panel)
+png("plots/00_overview_panel.png", width = 900, height = 650, res = 120)
+par(mfrow = c(2, 1))
+plot(tlb_ts, type = "l", lwd = 2,
+     main = "Total Live Births (1960-2024)",
+     xlab = "Year", ylab = "Births")
+plot(tfr_ts, type = "l", lwd = 2,
+     main = "Total Fertility Rate (1960-2024)",
+     xlab = "Year", ylab = "Children per woman")
+par(mfrow = c(1, 1))
+dev.off()
+
+# 3.2 TLB over full period (1960-2024)
+png("plots/01_tlb_full.png", width = 900, height = 500, res = 120)
+plot(tlb_ts, type = "l", lwd = 2,
+     main = "Singapore Total Live Births (1960-2024)",
+     xlab = "Year", ylab = "Number of live births")
+
+# draw a few reference years to guide interpretation
+abline(v = c(1965, 1987, 2013, 2020), lty = 3, col = "gray60")
+dev.off()
+
+# 3.3 TFR over full period (1960-2024)
+png("plots/02_tfr_full.png", width = 900, height = 500, res = 120)
+plot(tfr_ts, type = "l", lwd = 2,
+     main = "Singapore Total Fertility Rate (1960-2024)",
+     xlab = "Year", ylab = "Children per woman")
+abline(h = 2.1, lty = 2, col = "gray40")
+# Label above the line on the right: after ~1975 TFR is below 2.1, so this band is clear
+text(2005, 2.38, "Replacement level = 2.1", cex = 0.85, adj = c(0.5, 0))
+dev.off()
+
+# 3.4 Combined view (same panel, separate axes)
+png("plots/03_tlb_tfr_combined.png", width = 900, height = 500, res = 120)
+par(mar = c(5, 5, 4, 5))
+plot(tlb_ts, type = "l", lwd = 2, col = "black",
+     main = "TLB and TFR (1960-2024)",
+     xlab = "Year", ylab = "TLB (left axis)")
+par(new = TRUE)
+plot(tfr_ts, type = "l", lwd = 2, lty = 2, col = "black",
+     axes = FALSE, xlab = "", ylab = "")
+axis(side = 4)
+mtext("TFR (right axis)", side = 4, line = 3)
+legend("topright", bty = "n",
+       legend = c("TLB", "TFR"),
+       lwd = c(2, 2), lty = c(1, 2), col = "black")
+par(mar = c(5, 5, 4, 2))
+dev.off()
+
+# 3.5 Train/test split for TLB
+png("plots/04_tlb_train_test_split.png", width = 900, height = 500, res = 120)
+plot(tlb_train, type = "l", lwd = 2,
+     main = "TLB: Training and Test Split",
+     xlab = "Year", ylab = "Number of live births",
+     xlim = c(1960, 2024))
+lines(tlb_test, lwd = 2, lty = 2)
+abline(v = 2013, lty = 3, col = "gray40")
+legend("topright", bty = "n",
+       legend = c("Training 1960-2012", "Test 2013-2024"),
+       lwd = 2, lty = c(1, 2), col = "black")
+dev.off()
+
+# 3.6 Train/test split for TFR
+png("plots/05_tfr_train_test_split.png", width = 900, height = 500, res = 120)
+plot(tfr_train, type = "l", lwd = 2,
+     main = "TFR: Training and Test Split",
+     xlab = "Year", ylab = "Children per woman",
+     xlim = c(1960, 2024))
+lines(tfr_test, lwd = 2, lty = 2)
+abline(v = 2013, lty = 3, col = "gray40")
+legend("topright", bty = "n",
+       legend = c("Training 1960-2012", "Test 2013-2024"),
+       lwd = 2, lty = c(1, 2), col = "black")
+dev.off()
+
+
+# =============================================================================
+# SECTION 4: Trend smoothing (decomposition-style, annual data)
+# =============================================================================
+# Dataset: annual TLB and TFR, frequency = 1. There is no within-year seasonal
+# structure, so STL / classical seasonal decomposition (which need a seasonal
+# period) is not the right tool. We use a centred moving average to approximate
+# a smooth trend; the gap between observed and MA is informal "irregular"
+# variation (policy shocks, noise). Window length (5 years) is explained in the
+# EDA report — not replicated as a multi-line comparison plot here.
+
+ma5_tlb <- stats::filter(tlb_ts, rep(1 / 5, 5), sides = 2)
+ma5_tfr <- stats::filter(tfr_ts, rep(1 / 5, 5), sides = 2)
+
+png("plots/06_tlb_ma_trend.png", width = 900, height = 500, res = 120)
+plot(tlb_ts, type = "l", lwd = 1.5, col = "gray50",
+     main = "TLB with 5-year centred moving average (smooth trend)",
+     xlab = "Year", ylab = "Number of live births")
+lines(ma5_tlb, lwd = 2.5, col = "black")
+legend("topright", bty = "n",
+       legend = c("Observed", "5-year MA (trend)"),
+       col = c("gray50", "black"), lwd = c(1.5, 2.5))
+dev.off()
+
+png("plots/07_tfr_ma_trend.png", width = 900, height = 500, res = 120)
+plot(tfr_ts, type = "l", lwd = 1.5, col = "gray50",
+     main = "TFR with 5-year centred moving average (smooth trend)",
+     xlab = "Year", ylab = "Children per woman")
+lines(ma5_tfr, lwd = 2.5, col = "black")
+legend("topright", bty = "n",
+       legend = c("Observed", "5-year MA (trend)"),
+       col = c("gray50", "black"), lwd = c(1.5, 2.5))
+dev.off()
+
+
+# =============================================================================
+# SECTION 5: ACF, PACF, and first differencing (training data only)
+# =============================================================================
+
+# 5.1 ACF and PACF: raw training series
+png("plots/08_tlb_acf_pacf_raw.png", width = 900, height = 450, res = 120)
+par(mfrow = c(1, 2))
+acf(tlb_train, main = "ACF: TLB (1960-2012, raw)", lag.max = 20)
+pacf(tlb_train, main = "PACF: TLB (1960-2012, raw)", lag.max = 20)
+par(mfrow = c(1, 1))
+dev.off()
+
+png("plots/09_tfr_acf_pacf_raw.png", width = 900, height = 450, res = 120)
+par(mfrow = c(1, 2))
+acf(tfr_train, main = "ACF: TFR (1960-2012, raw)", lag.max = 20)
+pacf(tfr_train, main = "PACF: TFR (1960-2012, raw)", lag.max = 20)
+par(mfrow = c(1, 1))
+dev.off()
+
+# 5.2 First differences (d = 1): annual change in TLB and TFR
+tlb_diff1 <- diff(tlb_train, differences = 1)
+tfr_diff1 <- diff(tfr_train, differences = 1)
+
+png("plots/10_differenced_series.png", width = 900, height = 500, res = 120)
+par(mfrow = c(2, 1))
+plot(tlb_diff1, type = "l", lwd = 1.5, col = "black",
+     main = "First-differenced TLB (1961-2012)",
+     xlab = "Year", ylab = expression(Delta ~ "TLB"))
+abline(h = 0, lty = 2, col = "gray50")
+plot(tfr_diff1, type = "l", lwd = 1.5, col = "black",
+     main = "First-differenced TFR (1961-2012)",
+     xlab = "Year", ylab = expression(Delta ~ "TFR"))
+abline(h = 0, lty = 2, col = "gray50")
+par(mfrow = c(1, 1))
+dev.off()
+
+# 5.3 ACF and PACF: first-differenced series 
+png("plots/11_tlb_acf_pacf_diff.png", width = 900, height = 450, res = 120)
+par(mfrow = c(1, 2))
+acf(tlb_diff1, main = "ACF: first-differenced TLB", lag.max = 20)
+pacf(tlb_diff1, main = "PACF: first-differenced TLB", lag.max = 20)
+par(mfrow = c(1, 1))
+dev.off()
+
+png("plots/12_tfr_acf_pacf_diff.png", width = 900, height = 450, res = 120)
+par(mfrow = c(1, 2))
+acf(tfr_diff1, main = "ACF: first-differenced TFR", lag.max = 20)
+pacf(tfr_diff1, main = "PACF: first-differenced TFR", lag.max = 20)
+par(mfrow = c(1, 1))
+dev.off()
+
+
+# =============================================================================
+# SECTION 6: Stationarity tests (ADF only)
+# =============================================================================
+# Augmented Dickey-Fuller: H0 = unit root. Package: tseries.
+
+if (!requireNamespace("tseries", quietly = TRUE)) {
+  stop("Install package tseries for ADF, e.g. install.packages(\"tseries\")")
+}
+library(tseries)
+
+cat("\n=== ADF (H0: unit root) — TLB raw (1960-2012) ===\n")
+print(adf.test(tlb_train, alternative = "stationary"))
+
+cat("\n=== ADF — TFR raw (1960-2012) ===\n")
+print(adf.test(tfr_train, alternative = "stationary"))
+
+cat("\n=== ADF — first-differenced TLB ===\n")
+print(adf.test(tlb_diff1, alternative = "stationary"))
+
+cat("\n=== ADF — first-differenced TFR ===\n")
+print(adf.test(tfr_diff1, alternative = "stationary"))

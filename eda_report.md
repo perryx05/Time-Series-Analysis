@@ -16,7 +16,7 @@ This EDA investigates the following research questions:
 2. **Which time series models are most appropriate for forecasting TLB and TFR beyond the training period (1960–2012)?**
 3. **To what extent do known social and policy events explain the observed patterns in TLB and TFR?**
 
-These questions motivate the choice of models and the evaluation strategy detailed in subsequent sections.
+**Scope of this document:** exploratory plots and stationarity/autocorrelation diagnostics only; **model fitting and forecasting** are deferred to the **Final Report**. Questions (2)–(3) are partly answered here (suitability *in principle*) and fully addressed when models are estimated.
 
 ---
 
@@ -35,6 +35,7 @@ These questions motivate the choice of models and the evaluation strategy detail
 
 - Annual aggregation masks intra-year variation.
 - TFR is a period measure and does not directly reflect completed fertility of any cohort.
+- **Coverage definition (SingStat):** TFR before 1980 refers to the **total population**; from 1980 onward it refers to the **resident population** (citizens and permanent residents). Long-run comparisons should be read with that break in mind.
 - Policy interventions and external shocks (e.g., economic recessions, COVID-19) create structural breaks that standard time series models may not capture well.
 - No missing values were identified in the dataset after cleaning.
 
@@ -61,98 +62,125 @@ The raw data was downloaded from singstat.gov.sg and saved as a CSV file. The fo
 
 ## 4. Visualisation and Temporal Features
 
-### 4.1 Total Live Births (1960–2024)
+All figures below are produced in base R by `eda.R` and saved under `plots/`. Together they support the data description required by the rubric: they highlight **long-run trend**, **episodes of faster change or partial reversal**, and the **train/test split** used for later modelling.
 
-*[Insert plot: 01_tlb_full.png]*
+### 4.1 Overview panel
 
-The TLB series shows a broadly declining long-run trend from around 60,000 births in 1960 to approximately 30,000–35,000 by the 2020s. Several notable features are visible:
+![TLB and TFR overview (1960–2024)](plots/00_overview_panel.png)
 
-- **Baby boom and rapid decline (1960s–1980s):** Birth numbers were high in the early 1960s, followed by a sharp decline coinciding with Singapore's family planning campaigns launched in 1965–1966, which actively discouraged large families.
-- **Temporary uptick (late 1980s):** A modest reversal followed the "Have 3 or More Children" pro-natalist policy introduced in 1987.
-- **Gradual decline (1990s–2010s):** Birth numbers continued falling as education levels rose, women's labour force participation increased, and housing and childcare costs became prohibitive.
-- **COVID-19 effect (2020–2021):** A notable dip in births is observable around 2020–2021, consistent with pandemic-related disruptions to family formation globally.
+The stacked panel gives a first-pass comparison. **TLB** (counts of live births) is more volatile year to year: it falls steeply from the early 1960s, shows a visible bump in the late 1980s, and remains in a lower band from the 2000s onward, with a noticeable dip around 2020–2022. **TFR** (children per woman) follows the same broad story but as a smoother series, which is expected because TFR is constructed from age-specific rates and is not scaled by population size in the same way as total births. Annual data show **no seasonality**; the dominant signal is **trend** and occasional **short-run deviations**.
 
-The series appears **non-stationary** with a clear downward trend and no obvious seasonal component (as expected for annual data).
+### 4.2 Total Live Births (1960–2024)
 
-### 4.2 Total Fertility Rate (1960–2024)
+![Singapore Total Live Births, 1960–2024](plots/01_tlb_full.png)
 
-*[Insert plot: 02_tfr_full.png]*
+The full-series plot is used to read **salient temporal features** in context:
 
-The TFR series mirrors the general pattern of TLB but is smoother and more clearly monotonically declining:
+- **Early 1960s:** TLB is high (about 61,000 in 1960), then falls sharply through the late 1960s and 1970s. This aligns with intensive **anti-natalist** policy and social change after independence (e.g. family planning from the mid-1960s).
+- **Late 1980s:** There is a **partial rebound** rather than a return to 1960s levels, consistent with the shift toward **pro-natalist** messaging (e.g. “Have Three or More” from 1987). Births do not stay high; the uptick is temporary.
+- **1990s–2010s:** A **gradual decline** with fluctuations likely reflects delayed marriage, dual-income norms, housing and childcare costs, and ongoing policy adjustments—not a single smooth deterministic trend.
+- **From 2013:** The vertical reference marks the start of the **hold-out period** used for forecast evaluation (2013–2024). The series remains comparatively low; **2020** is marked as a year when external shocks (COVID-19) may have affected registration, timing of births, or both.
 
-- TFR started at approximately 5.8 in 1960, reflecting a typical developing-economy fertility level.
-- It fell rapidly below the replacement rate of 2.1 by the mid-1970s, driven by family planning policy.
-- Since the 1980s, TFR has been persistently below 2.1, reaching historical lows near 1.0–1.1 by the 2020s.
-- The series is more uniformly smooth than TLB, with fewer short-run fluctuations.
+For time series modelling, the figure motivates treating TLB as **non-stationary** (clear level shift and trend) rather than fluctuating around a fixed mean.
 
-### 4.3 Moving Average Trend
+### 4.3 Total Fertility Rate (1960–2024)
 
-*[Insert plot: 05_tlb_ma_trend.png]*
+![Singapore Total Fertility Rate, 1960–2024](plots/02_tfr_full.png)
 
-A 5-year centred moving average superimposed on the raw TLB series confirms the dominant downward trend, while the residuals from the trend reveal short-run variation that may be linked to policy changes and economic cycles.
+TFR starts near **5.8** in 1960 and falls below **2** by the mid-1970s. The horizontal dashed line at **2.1** denotes **conventional replacement-level fertility** (the TFR at which a population would roughly replace itself in the long run in a low-mortality setting, allowing for mortality and the sex ratio at birth; see standard demographic references and UN terminology). Singapore’s TFR has remained **below** that line for decades, reaching roughly **1.0** in recent years—consistent with **very low fertility** and policy concern over natural replacement.
 
-### 4.4 Training vs Test Split
+Because SingStat notes a **change in population coverage** for TFR in **1980** (total population before 1980; resident population from 1980 onward), the **level** around 1979–1981 should be interpreted cautiously when arguing about precise “breaks”; the **qualitative** picture of a collapsed fertility regime is still clear from the graph.
 
-*[Insert plot: 04_train_test_split.png]*
+### 4.4 TLB and TFR on one figure (dual vertical axis)
 
-The training period (1960–2012) captures the main structural decline. The test period (2013–2024) continues the downward trend but with less certainty, partly due to COVID-19. This split is appropriate because it tests whether models trained on historical data can generalise to a period with new policy contexts.
+![TLB and TFR combined, 1960–2024](plots/03_tlb_tfr_combined.png)
+
+This plot is **not** for reading exact magnitudes across scales (births vs. rate). It is useful to see **co-movement**: both series decline together in the first two decades; both show a **late-1980s** uptick; both drift to low levels in the 2000s and 2010s. Short episodes where **TLB moves more sharply than TFR** can reflect **population structure** (numbers of women of childbearing age, migration) as well as period fertility—another reason to model TLB and TFR separately rather than assuming one is a simple rescaling of the other.
+
+### 4.5 Training vs test split (modelling design)
+
+![TLB: training vs test](plots/04_tlb_train_test_split.png)
+
+![TFR: training vs test](plots/05_tfr_train_test_split.png)
+
+The assignment requires fitting models on **1960–2012** (53 years) and evaluating forecasts on **2013–2024** (12 years). The two figures show the **same split** for each series: a solid line for the training segment and a **dashed** line for the test segment, with a vertical marker at **2013**.
+
+**TLB:** The training period includes the steepest declines and the late-1980s bump; the test period includes the COVID-era dip and partial recovery in counts. **TFR:** The test period stays in the **roughly 1.0–1.3** band—models trained on pre-2013 data must extrapolate into a **structurally low-fertility** regime. That is appropriate for the rubric: it stresses whether simple time series models **generalise** when the level is already far from the 1960s and when recent shocks may violate classical assumptions.
+
+### 4.6 Trend smoothing and what we do *not* use (STL / seasonal decomposition)
+
+The rubric asks for a **composition of time series methods** (for example moving-average smoothing or differencing). For **annual** data there is **no seasonal period** within the year: `frequency = 1`, so **STL decomposition** and **classical seasonal decomposition** are **not appropriate**—they require a seasonal cycle (e.g. monthly \(s=12\), quarterly \(s=4\)). Applying them to these series would be **methodologically wrong** for the dataset’s time index.
+
+The **skeleton.R** approach is used here: a **centred moving average** approximates a **smooth trend**; what is left over when comparing the annual series to that trend is informal **irregular** variation.
+
+![TLB with 5-year centred MA](plots/06_tlb_ma_trend.png)
+
+![TFR with 5-year centred MA](plots/07_tfr_ma_trend.png)
+
+**Why a 5-year window (written rationale).** On annual data with only **65** observations, very short windows (e.g. 3 years) mostly reproduce the raw series and add little beyond the plots in §4.1–4.3; very long windows (e.g. 7–10 years) eat degrees of freedom and blur medium-term behaviour. A **5-year** centred MA is a **standard compromise** in teaching notes and demography-flavoured EDA: long enough to damp **one-off** year effects, short enough that the smooth curve still follows **decadal** shifts. Using an **odd** length (**5**) with `sides = 2` gives a **symmetric** centred filter (no separate re-centring step as with even-order MAs). The overlays in the figures are **illustrative**, not a formal test: the goal is an interpretable **trend line** for the narrative, aligned with the course skeleton, without over-claiming that alternative odd widths would look dramatically different on this sample. The same window is applied to **TFR** for **parallelism** in the EDA workflow.
+
+This supports the next steps: **differencing** for stationarity and ARIMA-style models, **not** seasonal differencing.
 
 ---
 
 ## 5. Analysis of Time Series Features
 
-### 5.1 ACF and PACF
+Following the **Time Series Notes / skeleton.R** workflow, all diagnostics in this section use **training data only (1960–2012)**. We examine **raw** ACF/PACF, then **first differences** \(\Delta y_t = y_t - y_{t-1}\) (annual change), then ACF/PACF of the differenced series—the usual path toward specifying **ARIMA(\(p\),1,\(q\))** when a unit root is present.
 
-*[Insert plots: 06_tlb_acf_pacf.png]*
+### 5.1 ACF and PACF (raw) and first differences
 
-The ACF for TLB on the training data shows slow decay across many lags, consistent with a non-stationary process containing a unit root or near-unit-root. The PACF shows a single significant spike at lag 1, suggesting an AR(1) structure may be present.
+**Raw series**
 
-After first differencing, the ACF cuts off more sharply (within [lags X]), and the PACF shows [describe your result]. This is consistent with an ARIMA(p, 1, q) model being appropriate.
+![ACF/PACF TLB raw](plots/08_tlb_acf_pacf_raw.png)
 
-For TFR, the ACF also shows slow decay. After differencing, [describe result]. This also suggests an ARIMA specification on the differenced series.
+![ACF/PACF TFR raw](plots/09_tfr_acf_pacf_raw.png)
 
-### 5.2 Stationarity Tests
+For both **TLB** and **TFR**, the **ACF decays slowly** and stays positive for many lags—typical of **strong persistence** and a **trending level**, consistent with **non-stationarity** in the mean (unit-root or near–unit-root behaviour). The PACF patterns are not the main tool until after differencing; they should not be read as a clean low-order AR on the **level**.
 
-| Series        | ADF p-value | KPSS p-value | Conclusion        |
-|---------------|-------------|--------------|-------------------|
-| TLB (raw)     | [XX]        | [XX]         | Non-stationary    |
-| TFR (raw)     | [XX]        | [XX]         | Non-stationary    |
-| TLB (diff 1)  | [XX]        | [XX]         | Stationary        |
-| TFR (diff 1)  | [XX]        | [XX]         | Stationary        |
+**First differences (illustrative series)**
 
-The ADF test (H₀: unit root present) and KPSS test (H₀: stationary) give complementary evidence. Both raw series appear non-stationary. After first differencing, both series achieve stationarity, indicating d = 1 is appropriate for ARIMA modelling.
+![First-differenced TLB and TFR](plots/10_differenced_series.png)
+
+The differenced series fluctuate around **zero** with no obvious drift; they represent **year-to-year changes** in births and in TFR (suitable for modelling cumulative shocks and policy phases).
+
+**ACF/PACF after differencing**
+
+![ACF/PACF first-differenced TLB](plots/11_tlb_acf_pacf_diff.png)
+
+![ACF/PACF first-differenced TFR](plots/12_tfr_acf_pacf_diff.png)
+
+After **one difference**, correlations typically **die off faster** than for the raw series—the differenced series are closer to what an ARMA model expects. **TLB:** ACF/PACF suggest modest low-order structure (candidate \(p,q\) to be chosen in §6 with AIC/BIC, not by eye alone). **TFR:** the differenced ACF/PACF are still somewhat messy—expected with **\(n-1 = 52\)** post-differencing points and possible **structural breaks** in fertility; formal model choice will rely on information criteria and residual checks as well as these plots.
+
+### 5.2 Stationarity tests (ADF only)
+
+Tests are run in **R** (`tseries` package) with default settings. **Augmented Dickey–Fuller (ADF):** H₀ = **unit root** (non-stationary); **rejection** of H₀ (small p-value, typically compared to α = 0.05) supports **stationarity**.
+
+| Series | ADF p-value | Interpretation (α = 0.05) |
+|--------|-------------|---------------------------|
+| TLB (raw) | 0.356 | Do not reject H₀ → **no evidence against a unit root**; level treated as **non-stationary**. |
+| TFR (raw) | 0.120 | Do not reject H₀ → **non-stationary** level (not significant at 5%). |
+| TLB, first difference | 0.039 | Reject H₀ → **stationary** differenced series. |
+| TFR, first difference | 0.083 | Do **not** reject H₀ at 5% (borderline); **inconclusive**—unit root not ruled out strongly. |
+
+**Summary.** ADF on **raw** series supports treating both TLB and TFR as **integrated** (trending levels). After **one difference**, **TLB** shows clear rejection of a unit root; **TFR** is **borderline**, which is common with **short samples** and **structural breaks**. The ACF/PACF of the **differenced** series (§5.1) motivate a **\(d=1\)** term in eventual **ARIMA**-style models, but **this EDA does not estimate or select** \(p\), \(q\), or any fitted model—that belongs in the **Final Report**.
 
 ---
 
-## 6. Preliminary Model Identification
+## 6. From EDA toward modelling (no fit in this document)
 
-Based on the ACF/PACF patterns on the differenced training data, the following candidate models are identified:
+This submission is **exploratory only**: plots, moving-average trends, ACF/PACF, differencing, and **ADF** on raw and differenced training data. **No ARIMA (or other) model is fitted here** and **no forecasts** are produced.
 
-### 6.1 TLB Candidate Models
+For the **Final Report**, the course requires at least **two viable models per series** on **1960–2012**, **evaluation on 2013–2024**, and **residual checks** (including **Box–Ljung** on residuals). The EDA above supports that next step by suggesting:
 
-**Candidate 1: ARIMA(p, 1, q)**  
-- Orders p and q selected based on significant lags in PACF and ACF of the first-differenced series respectively.
-- Tentative specification: ARIMA([X], 1, [X]) — to be refined.
-- In-sample AIC: [XX]; BIC: [XX]
-- Residual ACF shows [white noise / remaining structure — describe].
-
-**Candidate 2 (for Final Report): [e.g., Holt's Linear Trend / Random Walk with Drift]**  
-- Rationale: [brief justification]
-
-### 6.2 TFR Candidate Models
-
-**Candidate 1: ARIMA(p, 1, q)**  
-- Tentative specification: ARIMA([X], 1, [X])
-- In-sample AIC: [XX]; BIC: [XX]
-- Residual diagnostics: [describe]
-
-**Candidate 2 (for Final Report):** [to be added]
+- non-seasonal annual structure → **no seasonal ARIMA** needed;  
+- integrated levels → **\(d=1\)** as a starting point for ARIMA or related models;  
+- orders **\(p,q\)** to be chosen from **differenced** ACF/PACF plus **information criteria** and **out-of-sample** accuracy, not repeated here.
 
 ---
 
 ## 7. Model Assessment Strategy
 
-To evaluate which model is best for forecasting 2013–2024, the following criteria will be used:
+When models are fitted in the **Final Report**, the plan is to assess them as follows (not applied in this EDA-only script):
 
 **In-sample (training fit, 1960–2012):**
 - AIC and BIC — penalise model complexity; lower is better.
@@ -163,6 +191,8 @@ To evaluate which model is best for forecasting 2013–2024, the following crite
 - Mean Absolute Error (MAE) — robust to outliers.
 - Mean Absolute Percentage Error (MAPE) — allows comparison across TLB and TFR scales.
 - Visual inspection of forecast vs actual plot — important for assessing direction and structural plausibility.
+
+**Trade-offs (rubric / HD-style reasoning):** **AIC** tends to favour **more complex** models when the gain in fit outweighs the penalty; **BIC** penalises parameters **more strongly**, often preferring **simpler** models in moderate-\(n\) settings like 53 years of training data. **In-sample** criteria can **improve** by **overfitting** idiosyncrasies of 1960–2012 (including **structural breaks**), so they **must** be paired with **out-of-sample RMSE** (primary for this project), **MAE**, and **plots** for 2013–2024. Where **statistics** and **context** (e.g. known policy shifts) conflict, the Final Report should state which criterion drives the final choice.
 
 The primary criterion for the Final Report will be **out-of-sample RMSE**, as the task is to forecast 2013–2024. However, AIC/BIC will also be considered to guard against overfitting on the training period.
 
@@ -221,9 +251,9 @@ H₁: γ < 0 (stationary)
 
 Rejection of H₀ at α = 0.05 indicates stationarity.
 
-### C. KPSS Test
+### C. Box–Ljung test (portmanteau)
 
-The KPSS test decomposes the series as Y_t = μ_t + η_t where η_t is a random walk. H₀ is stationarity (variance of η_t = 0). A significant test statistic indicates non-stationarity.
+Under H₀ that the series (here, model **residuals**) is white noise up to lag \(m\), the Box–Ljung statistic is approximately \(\chi^2(m)\) (after fitting, degrees of freedom are sometimes reduced when parameters are estimated; R reports df aligned with the call). A **large** p-value is **consistent with** uncorrelated residuals.
 
 ### D. Information Criteria
 
