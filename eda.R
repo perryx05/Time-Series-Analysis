@@ -338,3 +338,50 @@ print(adf.test(tlb_diff1, alternative = "stationary"))
 
 cat("\n=== ADF — first-differenced TFR ===\n")
 print(adf.test(tfr_diff1, alternative = "stationary"))
+
+
+# =============================================================================
+# SECTION 7: Preliminary model identification (training: 1960-2012)
+# =============================================================================
+# Course scope: we do not use KPSS and we do not cover ARIMA yet.
+# We fit simple AR / MA / ARMA models on the first-differenced series.
+#
+# NOTE: these are preliminary candidates for the Final Report. No forecasts here.
+
+# --- 7.1 TLB candidate on first differences ---
+# ACF/PACF on tlb_diff1 show weak short-lag structure, so a parsimonious baseline
+# is white noise for annual changes: ARMA(0,0).
+tlb_arma00 <- stats::arima(tlb_diff1, order = c(0, 0, 0), method = "ML")
+
+cat("\n=== TLB candidate: ARMA(0,0) on first differences (annual change) ===\n")
+cat("AIC:", tlb_arma00$aic, "  BIC:", BIC(tlb_arma00), "\n")
+print(tlb_arma00)
+
+png("plots/13_tlb_arma00_residuals_acf_pacf.png", width = 900, height = 450, res = 120)
+par(mfrow = c(1, 2))
+acf(residuals(tlb_arma00), main = "ACF: TLB ARMA(0,0) residuals", lag.max = 20)
+pacf(residuals(tlb_arma00), main = "PACF: TLB ARMA(0,0) residuals", lag.max = 20)
+par(mfrow = c(1, 1))
+dev.off()
+
+cat("\n=== Box-Ljung: TLB ARMA(0,0) residuals (lag = 10) ===\n")
+print(Box.test(residuals(tlb_arma00), lag = 10, type = "Ljung-Box"))
+
+# --- 7.2 TFR candidate on first differences ---
+# PACF shows a clear spike at lag 1 while ACF drops quickly, so AR(1) is a
+# reasonable first candidate on annual changes.
+tfr_ar1 <- stats::arima(tfr_diff1, order = c(1, 0, 0), method = "ML")
+
+cat("\n=== TFR candidate: AR(1) on first differences (annual change) ===\n")
+cat("AIC:", tfr_ar1$aic, "  BIC:", BIC(tfr_ar1), "\n")
+print(tfr_ar1)
+
+png("plots/14_tfr_ar1_residuals_acf_pacf.png", width = 900, height = 450, res = 120)
+par(mfrow = c(1, 2))
+acf(residuals(tfr_ar1), main = "ACF: TFR AR(1) residuals", lag.max = 20)
+pacf(residuals(tfr_ar1), main = "PACF: TFR AR(1) residuals", lag.max = 20)
+par(mfrow = c(1, 1))
+dev.off()
+
+cat("\n=== Box-Ljung: TFR AR(1) residuals (lag = 10) ===\n")
+print(Box.test(residuals(tfr_ar1), lag = 10, type = "Ljung-Box"))
