@@ -150,7 +150,7 @@ For **TFR (annual change)**, the PACF shows a clear spike at lag 1 while the ACF
 
 Tests are run in **R** (`tseries` package) with default settings. **Augmented Dickey–Fuller (ADF):** H₀ = **unit root** (non-stationary); **rejection** of H₀ (small p-value, typically compared to α = 0.05) supports **stationarity**.
 
-**Justification of the formula used above (first difference).** In `Δy_t = y_t - y_{t-1}`, `y_t` means the series value in year `t`, `y_{t-1}` means previous year value, and `Δy_t` is the year-to-year change (annual change). We use it because the level series has strong trend, and AR/MA/ARMA needs a more stable series.
+**Justification of the formula used above (first difference).** In **Δyₜ = yₜ − yₜ₋₁**, **yₜ** means the series value in year *t*, **yₜ₋₁** means previous year value, and **Δyₜ** is the year-to-year change (annual change). We use it because the level series has strong trend, and AR/MA/ARMA needs a more stable series.
 
 | Series | ADF p-value | Interpretation (α = 0.05) |
 |--------|-------------|---------------------------|
@@ -159,7 +159,7 @@ Tests are run in **R** (`tseries` package) with default settings. **Augmented Di
 | TLB, first difference | 0.039 | Reject H₀ → **stationary** differenced series. |
 | TFR, first difference | 0.083 | Do **not** reject H₀ at 5% (borderline); **inconclusive**—unit root not ruled out strongly. |
 
-**Summary.** ADF on the raw series suggests both TLB and TFR are non-stationary in levels (they have strong trend / long memory). After one difference (annual change, `Δy_t = y_t - y_{t-1}`), **TLB** clearly becomes stationary by ADF at 5%. For **TFR**, the differenced ADF result is borderline at 5%, which is not unusual for short annual series with policy breaks. In this EDA we still proceed with modelling the annual changes using simple AR / MA / ARMA candidates, and we check if residuals look like white noise.
+**Summary.** ADF on the raw series suggests both TLB and TFR are non-stationary in levels (they have strong trend / long memory). After one difference (annual change, `Δyₜ = yₜ − yₜ₋₁`), **TLB** clearly becomes stationary by ADF at 5%. For **TFR**, the differenced ADF result is borderline at 5%, which is not unusual for short annual series with policy breaks. In this EDA we still proceed with modelling the annual changes using simple AR / MA / ARMA candidates, and we check if residuals look like white noise.
 
 ---
 
@@ -172,8 +172,8 @@ For each candidate model below, we report:
 - Box–Ljung test on residuals (lag 10)
 
 **Justification of terms (AIC/BIC and Box–Ljung).**  
-- **AIC/BIC** are model selection criteria from the fitted likelihood. Lower values mean better fit after penalty for number of parameters. BIC penalises complexity stronger than AIC, so BIC often prefers simpler model.  
-- **Box–Ljung** tests whether residual autocorrelations are jointly close to zero up to a chosen lag (here lag 10). A large p-value means residuals are consistent with white noise, which is what we want after fitting a good model.
+- **AIC/BIC**: you can think it as **fit − penalty**. Smaller is better. In formula form (for reference): **AIC = −2 log(L) + 2k** and **BIC = −2 log(L) + k log(n)**, where **L** is likelihood, **k** is number of parameters, **n** is sample size. BIC penalises complexity stronger than AIC, so BIC often prefers simpler model.  
+- **Box–Ljung**: tests whether residual autocorrelations are jointly close to zero up to a chosen lag (here lag 10). In formula form (for reference): **Q = n(n+2) ∑ₖ₌₁ᵐ rₖ²/(n−k)** where **rₖ** is residual autocorrelation at lag k. A large p-value means residuals are consistent with white noise, which is what we want after fitting a good model.
 
 ### 6.1 TLB candidate: ARMA(0,0) on annual changes
 
@@ -191,7 +191,7 @@ For each candidate model below, we report:
 
 ### 6.2 TFR candidate: AR(1) on annual changes
 
-**Model form.** We fit AR(1) on `diff(TFR_train)`. This means the current year change is partly related to the previous year change.
+**Model form.** We fit AR(1) on `diff(TFR_train)`. In formula form: **xₜ = c + φ₁xₜ₋₁ + εₜ**, where **xₜ** is the annual change in TFR, **c** is a constant, **φ₁** is the lag-1 effect, and **εₜ** is random shock (white noise).
 
 **Why this is reasonable.** In the differenced TFR PACF there is a clear spike at lag 1, while the ACF drops quickly. This is a standard visual pattern that supports an AR(1) structure.
 
@@ -224,19 +224,7 @@ For the Final Report, where at least two models per series are required and fore
 ---
 
 
-## 8. Brief Literature Review
-
-This EDA uses basic AR/MA/ARMA tools, but it is still useful to look at what is common in the literature for birth and fertility forecasting:
-
-- **Land & Cantor (1983, Demography)** modelled birth and death rates using ARIMA-style time-series methods and discussed how autocorrelation patterns help with model building. This supports the idea that autocorrelation diagnostics are important even for demographic outcomes.
-- **de Beer (1989)** discussed time-series approaches for projecting fertility rates (including age-specific fertility) and shows that demographic time series often need careful handling of trend and structural change.
-- A recent example is a study on India TFR which compared Holt’s trend method with ARIMA and found ARIMA had smaller forecast errors in that setting (see “A comparative analysis of the Holt and ARIMA models for predicting the future total fertility rate in India”, *Life Cycle Reliability and Safety Engineering*, 2025; published online 03 January 2025: `https://link.springer.com/article/10.1007/s41872-024-00287-1`). This suggests that time-series models can be useful, but results depend on the country context and the stability of policy and social conditions.
-
-Overall, the literature suggests that simple time-series models can work for short horizons, but long-run fertility decline is influenced by structural factors. This is why the Final Report should combine statistical criteria with contextual knowledge.
-
----
-
-## 9. References (course + context)
+## 8. References (course + context)
 
 - OBGyn Key n.d., *Singapore's pro-natalist policies: to what extent have they worked?*, OBGyn Key, viewed 29 March 2026, `https://obgynkey.com/singapores-pro-natalist-policies-to-what-extent-have-they-worked/`.
 - National Library Board Singapore 2000, *“Have three, or more if you can afford it” is announced*, NLB Singapore, viewed 29 March 2026, `https://www.nlb.gov.sg/main/article-detail?cmsuuid=1d106f7e-aca1-4c0e-ac7a-d35d0772707d`.
