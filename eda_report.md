@@ -71,8 +71,8 @@ Looking at the two graphs together we can have a good starting point for underst
 ![Singapore Total Live Births, 1960–2024](plots/01_tlb_full.png)
 
 
-- **Early 1960s:** TLB was high (about 61,000 in 1960),but then it dropped quite sharply through the late 1960s and 1970s. This may be connected to the intensive goverment policy and social change to reduce birth after independence. For example, the Singapore Family Planning and Population Board was established in 1966 as part of a national programme to control population growth (OBGyn Key, n.d.; Yap 2003)
-- **Late 1980s:** The number of births was slightly increased, which could be related to the change in government message at that time. Specifically, the **"Have Three or More if You Can Afford It"** campaign was officially announced on 1 March 1987 by then Deputy Prime Minister Goh Chok Tong, marking a clear shift away from the earlier anti-natalist approach (National Library Board Singapore, 2000). But this increase did not last long and the number did not go back to the same level as the 1960s.
+- **Early 1960s:** TLB was high (about 61,000 in 1960),but then it dropped quite sharply through the late 1960s and 1970s. This may be connected to the intensive goverment policy and social change to reduce birth after independence. For example, the Singapore Family Planning and Population Board was established in 1966 as part of a national programme to control population growth (OBGyn Key n.d.).
+- **Late 1980s:** The number of births was slightly increased, which could be related to the change in government message at that time. Specifically, the **"Have Three or More if You Can Afford It"** campaign was announced in 1987 (National Library Board Singapore 2000). But this increase did not last long and the number did not go back to the same level as the 1960s.
 - **1990s–2010s:** The births continued to slowly go down, but with some up and down movement along the way. This is likely due to several reasons happening at the same time — such as people getting married later, more women working, and the high cost of housing and childcare — rather than just one simple cause
 - **From 2013:** The dotted vertical line around 2013 marks the beginning of the period used to test how well the forecasting model performs, which covers 2013 to 2024. The birth numbers remains quite low; 2020 is marked as a year when external shocks (COVID-19) may have affected when babies were born and when births were officially recorded.
 
@@ -82,7 +82,7 @@ For time series modelling, the figure suggests that treating TLB as **non-statio
 
 ![Singapore Total Fertility Rate, 1960–2024](plots/02_tfr_full.png)
 
-TFR starts near **5.8** in 1960 and drops below **2** by the mid-1970s. The horizontal dashed line at **2.1** which is **replacement-level fertility** (the TFR that a country needs to maintain in order to keep its population stable over time, taking into account things like mortality rates and the natural balance between male and female births. This is a standard measure used in demographic research and by organisations like the United Nations). Singapore’s TFR has remained below that line for many decades, reaching roughly **1.0** in recent years, which is considered extremely low and is a major concern for the government when thinking about whether the population can replace itself naturally.
+TFR starts near **5.8** in 1960 and drops below **2** by the mid-1970s. The horizontal dashed line at **2.1** which is **replacement-level fertility** (a standard demographic benchmark; see United Nations Statistics Division n.d.). Singapore’s TFR has remained below that line for many decades, reaching roughly **1.0** in recent years, which is considered extremely low and is a major concern for the government when thinking about whether the population can replace itself naturally.
 
 Because SingStat notes a **change in population coverage** for TFR in **1980** (total population before 1980; resident population from 1980 onward), the level around 1979–1981 should be interpreted cautiously when arguing about precise “breaks”. However, this technical detail does not really change the overall picture — it is still very clear from the graph that Singapore's fertility rate collapsed dramatically over this period.
 ### 4.4 TLB and TFR on one figure (dual vertical axis)
@@ -102,7 +102,7 @@ For the **Total Live Births**, the training period covers the most significant d
 
 ### 4.6 Trend smoothing and what we do *not* use (STL / seasonal decomposition)
 
-For annual data there is no seasonal period within the year: `frequency = 1`, so STL decomposition and classical seasonal decomposition are not appropriate — they require a seasonal cycle (e.g. monthly \(s=12\), quarterly \(s=4\)). 
+For annual data there is no seasonal period within the year: `frequency = 1`, so STL decomposition and classical seasonal decomposition are not appropriate — they require a seasonal cycle (e.g. monthly s=12, quarterly s=4). 
 
 Our approach is using **centred moving average** approximates a **smooth trend**; what is left over when comparing the annual series to that trend is informal irregular variation.
 
@@ -140,15 +140,17 @@ After applying first differencing, both series now fluctuate around zero without
 
 ![ACF/PACF first-differenced TFR](plots/12_tfr_acf_pacf_diff.png)
 
-After **one difference**, the correlations die off much faster compared to the raw series. This is what we want because AR / MA / ARMA models assume the series is roughly stationary around a stable mean.
+After **one difference**, the correlations die off much faster compared to the original series. This is what we want because AR / MA / ARMA models assume the series is roughly stationary around a stable mean.
 
 For **TLB (annual change)**, the ACF and PACF at short lags (1–3) are mostly inside the confidence bands. This suggests the year-to-year change in births does not have a strong and stable autocorrelation pattern. A reasonable and very parsimonious first candidate is **ARMA(0,0)** for the differenced series (meaning the changes are close to white noise plus an average drift).
 
 For **TFR (annual change)**, the PACF shows a clear spike at lag 1 while the ACF drops quickly. This pattern is often consistent with an **AR(1)** structure on the differenced series, so a sensible first candidate is **AR(1)** for the annual changes in TFR. Some later lags show spikes too, but because the sample after differencing is only 52 points and fertility has structural breaks, we start with a simple low-order model and rely on residual checks to see if the model is acceptable.
 
-### 5.2 Stationarity tests (ADF only)
+### 5.2 Stationarity tests 
 
 Tests are run in **R** (`tseries` package) with default settings. **Augmented Dickey–Fuller (ADF):** H₀ = **unit root** (non-stationary); **rejection** of H₀ (small p-value, typically compared to α = 0.05) supports **stationarity**.
+
+**Justification of the formula used above (first difference).** In `Δy_t = y_t - y_{t-1}`, `y_t` means the series value in year `t`, `y_{t-1}` means previous year value, and `Δy_t` is the year-to-year change (annual change). We use it because the level series has strong trend, and AR/MA/ARMA needs a more stable series.
 
 | Series | ADF p-value | Interpretation (α = 0.05) |
 |--------|-------------|---------------------------|
@@ -157,24 +159,27 @@ Tests are run in **R** (`tseries` package) with default settings. **Augmented Di
 | TLB, first difference | 0.039 | Reject H₀ → **stationary** differenced series. |
 | TFR, first difference | 0.083 | Do **not** reject H₀ at 5% (borderline); **inconclusive**—unit root not ruled out strongly. |
 
-**Summary.** ADF on the **raw** series suggests both TLB and TFR are non-stationary in levels (they have strong trend / long memory). After **one difference** (annual change, `Δy_t = y_t - y_{t-1}`), **TLB** clearly becomes stationary by ADF at 5%. For **TFR**, the differenced ADF result is borderline at 5%, which is not unusual for short annual series with policy breaks. In this EDA we still proceed with modelling the annual changes using simple AR / MA / ARMA candidates, and we check if residuals look like white noise.
+**Summary.** ADF on the raw series suggests both TLB and TFR are non-stationary in levels (they have strong trend / long memory). After one difference (annual change, `Δy_t = y_t - y_{t-1}`), **TLB** clearly becomes stationary by ADF at 5%. For **TFR**, the differenced ADF result is borderline at 5%, which is not unusual for short annual series with policy breaks. In this EDA we still proceed with modelling the annual changes using simple AR / MA / ARMA candidates, and we check if residuals look like white noise.
 
 ---
 
 ## 6. Preliminary Model Identification (training: 1960–2012)
 
-In this course we have not covered ARIMA yet, so the preliminary models in the EDA are limited to **AR**, **MA**, and **ARMA**. Because the level series are trending, we fit these models on the **first-differenced training series** (annual changes) for **1960–2012**.
 
 For each candidate model below, we report:
 - AIC and BIC (in-sample fit with complexity penalty)
 - residual ACF/PACF (should look like white noise)
 - Box–Ljung test on residuals (lag 10)
 
+**Justification of terms (AIC/BIC and Box–Ljung).**  
+- **AIC/BIC** are model selection criteria from the fitted likelihood. Lower values mean better fit after penalty for number of parameters. BIC penalises complexity stronger than AIC, so BIC often prefers simpler model.  
+- **Box–Ljung** tests whether residual autocorrelations are jointly close to zero up to a chosen lag (here lag 10). A large p-value means residuals are consistent with white noise, which is what we want after fitting a good model.
+
 ### 6.1 TLB candidate: ARMA(0,0) on annual changes
 
 **Model form.** We fit ARMA(0,0) on `diff(TLB_train)`. This is the simplest baseline: it assumes the annual change is mainly random noise around a mean drift.
 
-**Why this is reasonable.** The differenced ACF/PACF for TLB do not show clear and stable short-lag spikes, so adding AR or MA terms may not improve much in a reliable way. Starting with the simplest model helps avoid overfitting.
+**Why this is reasonable.** The differenced ACF/PACF for TLB do not show clear and stable short-lag spikes, so adding AR or MA terms may not improve much in a reliable way. Starting with the simplest model helps us to avoid overfitting.
 
 - **AIC / BIC (training):** AIC = **975.13**, BIC = **979.03**
 
@@ -218,20 +223,8 @@ For the Final Report, where at least two models per series are required and fore
 
 ---
 
-## 8. Social and Economic Context
 
-Beyond statistical criteria, model choice must be informed by the policy landscape:
-
-- **Family planning (1965–1984):** The "Stop at Two" campaign caused a structural break in fertility that standard models may not account for.
-- **Pro-natalist reversal (1987–present):** Baby Bonus schemes, childcare subsidies, and housing priority for families have modestly slowed the decline but not reversed it.
-- **Economic cycles:** The 1997 Asian Financial Crisis, 2003 SARS epidemic, 2008–2009 Global Financial Crisis, and 2020 COVID-19 pandemic all produced short-term dips in TLB visible in the data.
-- **Structural demographic shift:** The long-run decline in TFR reflects rising education, delayed marriage, increasing female labour force participation, and high cost of living. These are not directly included in simple AR/MA/ARMA models, so some model error in 2013–2024 is expected.
-
-If statistical tests favour a model that ignores known policy breaks, the Final Report will justify overriding the statistical recommendation in favour of a model with better theoretical grounding.
-
----
-
-## 9. Brief Literature Review
+## 8. Brief Literature Review
 
 This EDA uses basic AR/MA/ARMA tools, but it is still useful to look at what is common in the literature for birth and fertility forecasting:
 
@@ -243,56 +236,10 @@ Overall, the literature suggests that simple time-series models can work for sho
 
 ---
 
-## 10. Statistical Appendix
+## 9. References (course + context)
 
-### A. First differencing (annual change)
+- OBGyn Key n.d., *Singapore's pro-natalist policies: to what extent have they worked?*, OBGyn Key, viewed 29 March 2026, `https://obgynkey.com/singapores-pro-natalist-policies-to-what-extent-have-they-worked/`.
+- National Library Board Singapore 2000, *“Have three, or more if you can afford it” is announced*, NLB Singapore, viewed 29 March 2026, `https://www.nlb.gov.sg/main/article-detail?cmsuuid=1d106f7e-aca1-4c0e-ac7a-d35d0772707d`.
+- United Nations Statistics Division n.d., *Total Fertility Rate: Demographics — Population Change*, UN Statistics Division, viewed 29 March 2026, `https://www.un.org/esa/sustdev/natlinfo/indicators/methodology_sheets/demographics/total_fertility_rate.pdf`.
 
-We use first differencing to remove the long-term trend in levels and focus on annual change:
 
-- `Δy_t = y_t - y_{t-1}`
-
-In this EDA, AR/MA/ARMA models are fitted to `Δy_t` for the training period 1960–2012.
-
-### B. Augmented Dickey-Fuller Test
-
-The ADF test estimates the regression:
-
-- `Δy_t = α + β t + γ y_{t-1} + Σ_{j=1..k} δ_j Δy_{t-j} + ε_t`
-
-H₀: γ = 0 (unit root; non-stationary)  
-H₁: γ < 0 (stationary)
-
-Rejection of H₀ at α = 0.05 indicates stationarity.
-
-### C. AR, MA, and ARMA models (on a stationary series)
-
-Let `x_t` be a stationary series (in this EDA, `x_t` is the annual change `Δy_t`).
-
-- **AR(p):** `x_t = c + φ_1 x_{t-1} + ... + φ_p x_{t-p} + ε_t`
-- **MA(q):** `x_t = c + ε_t + θ_1 ε_{t-1} + ... + θ_q ε_{t-q}`
-- **ARMA(p,q):** combination of AR(p) and MA(q).
-
-Here `ε_t` is white noise with mean 0 and variance σ².
-
-### D. Box–Ljung test (portmanteau)
-
-Under H₀ that the series (here, model **residuals**) is white noise up to lag `m`, the Box–Ljung statistic is approximately `χ²(m)`. After fitting a model, the degrees of freedom can be adjusted because parameters are estimated (R reports the df used in the call). A **large** p-value is **consistent with** uncorrelated residuals.
-
-### E. Information Criteria
-
-- `AIC = -2 log(L) + 2k`
-- `BIC = -2 log(L) + k log(n)`
-
-where L is the maximised likelihood, k is the number of parameters, and n is the number of observations. Lower values indicate a better-fitting model, with BIC penalising complexity more heavily than AIC.
-
-### F. Forecast Accuracy Metrics (used in Final Report)
-
-- `RMSE = sqrt( (1/h) Σ (y_t - ŷ_t)^2 )`
-- `MAE  = (1/h) Σ |y_t - ŷ_t|`
-- `MAPE = (1/h) Σ |y_t - ŷ_t| / |y_t| × 100`
-
-where h = 12 is the forecast horizon (2013–2024), y_t is the actual value, and ŷ_t is the forecast.
-
----
-
-*End of EDA Report*
