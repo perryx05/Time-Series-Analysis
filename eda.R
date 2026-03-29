@@ -7,7 +7,6 @@
 # SECTION 0: Set up and load packages
 # =============================================================================
 
-# Base R workflow: Sections 0–6 only (data → visuals → MA → ACF/PACF → differencing → ADF).
 # install.packages("tseries") once if needed for adf.test.
 # library(tseries)
 
@@ -343,12 +342,9 @@ print(adf.test(tfr_diff1, alternative = "stationary"))
 # =============================================================================
 # SECTION 7: Preliminary model identification (training: 1960-2012)
 # =============================================================================
-# Course scope: we do not use KPSS and we do not cover ARIMA yet.
 # We fit simple AR / MA / ARMA models on the first-differenced series.
-#
-# NOTE: these are preliminary candidates for the Final Report. No forecasts here.
 
-# --- 7.1 TLB candidate on first differences ---
+# 7.1 TLB candidate on first differences 
 # ACF/PACF on tlb_diff1 show weak short-lag structure, so a parsimonious baseline
 # is white noise for annual changes: ARMA(0,0).
 tlb_arma00 <- stats::arima(tlb_diff1, order = c(0, 0, 0), method = "ML")
@@ -367,7 +363,7 @@ dev.off()
 cat("\n=== Box-Ljung: TLB ARMA(0,0) residuals (lag = 10) ===\n")
 print(Box.test(residuals(tlb_arma00), lag = 10, type = "Ljung-Box"))
 
-# --- 7.2 TFR candidate on first differences ---
+# 7.2 TFR candidate on first differences 
 # PACF shows a clear spike at lag 1 while ACF drops quickly, so AR(1) is a
 # reasonable first candidate on annual changes.
 tfr_ar1 <- stats::arima(tfr_diff1, order = c(1, 0, 0), method = "ML")
