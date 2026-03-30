@@ -1,7 +1,7 @@
 # Exploratory Data Analysis: Singapore Total Live Births and Total Fertility Rate (1960–2024)
 
-
-**GitHub Repository:** https://github.com/perryx05/Time-Series-Analysis 
+**Author:** Minh Chien Nguyen  
+**GitHub Repository:** <https://github.com/perryx05/Time-Series-Analysis>
 
 ---
 
@@ -12,7 +12,7 @@ Singapore has experienced a significant demographic transition since gaining ind
 This EDA investigates the following research questions:
 
 1. **What are the key temporal trends and structural changes in Singapore's TLB and TFR from 1960 to 2024?**
-2. **Which time series models are most appropriate for forecasting TLB and TFR beyond the training period (1960–2012)?**
+2. **Which possible time series models are appropriate for forecasting TLB and TFR beyond the training period (1960–2012)?**
 3. **To what extent do known social and policy events explain the observed patterns in TLB and TFR?**
 
 
@@ -22,6 +22,7 @@ This EDA investigates the following research questions:
 
 **Source:** Singapore Department of Statistics (singstat.gov.sg)  
 **Variables of interest:**
+
 - **Total Live Births (TLB):** Annual count of live births in Singapore
 - **Total Fertility Rate (TFR):** Average number of children a woman would have over her lifetime, based on current age-specific fertility rates
 
@@ -85,11 +86,13 @@ For time series modelling, the figure suggests that treating TLB as **non-statio
 TFR starts near **5.8** in 1960 and drops below **2** by the mid-1970s. The horizontal dashed line at **2.1** is **replacement-level fertility** (a standard demographic benchmark; see United Nations Statistics Division n.d.). Singapore’s TFR has remained below that line for many decades, reaching roughly **1.0** in recent years, which is considered extremely low and is a major concern for the government when thinking about whether the population can replace itself naturally.
 
 Because SingStat notes a **change in population coverage** for TFR in **1980** (total population before 1980; resident population from 1980 onward), the level around 1979–1981 should be interpreted cautiously when arguing about precise “breaks”. However, this technical detail does not really change the overall picture — it is still very clear from the graph that Singapore's fertility rate collapsed dramatically over this period.
+
 ### 4.4 TLB and TFR on one figure (dual vertical axis)
 
 ![TLB and TFR combined, 1960–2024](plots/03_tlb_tfr_combined.png)
 
-This plot is not for reading exact numbers between two measurements (births vs. rate). It is useful to see **how the two lines move together over time**: both series decline together in the first two decades; both show a small increase in the late 1980; both end up at low levels in the 2000s and 2010s. However, there are some short periods where the total live births line moves more sharply up or down compared to the TFR line. This can happen because TLB is also affected by things like how many women of childbearing age are in the population at a given time, or changes due to migration — not just whether women are choosing to have more or fewer children. This is one of the reasons why it makes more sense to model TLB and TFR as two separate series, rather than assuming that one is simply a scaled-up or scaled-down version of the other.
+This plot is not for reading exact numbers between two measurements (births vs. rate). It is useful to see **how the two lines move together over time**: both series decline together in the first two decades; both show a small increase in the **late 1980**; both end up at low levels in the **2000s and 2010s**. However, there are some short periods where the total live births line moves more sharply up or down compared to the TFR line. This can happen because TLB is also affected by things like how many women of childbearing age are in the population at a given time, or changes due to migration — not just whether women are choosing to have more or fewer children. This is one of the reasons why it makes more sense to model TLB and TFR as two separate series, rather than assuming that one is simply a scaled-up or scaled-down version of the other.
+
 ### 4.5 Training vs test split (modelling design)
 
 ![TLB: training vs test](plots/04_tlb_train_test_split.png)
@@ -119,9 +122,9 @@ Our approach uses a **centred moving average** to approximate a **smooth trend**
 The patterns visible in TLB and TFR cannot be fully understood through statistical analysis. Several known policy events and social changes have directly shaped the data, and any time series model trained on this period will be implicitly fitting through these structural changes.
 
 - **1966 — Family planning campaign:** The Singapore Family Planning and Population Board was established, launching an active campaign to discourage large families. This is closely associated with the sharp decline in TLB and TFR through the late 1960s and 1970s (OBGyn Key n.d.).
-- **1987 — \"Have Three or More\" policy:** The government reversed its earlier position and introduced a pro-natalist message encouraging Singaporeans to have three or more children if they could afford it (National Library Board Singapore 2000). A modest uptick in births is visible around this period, but the effect was temporary and small relative to the long-run decline.
-- **1990s–2000s — Baby Bonus and other incentives:** The government introduced a range of financial incentives, childcare subsidies, and housing priority schemes to support families. Despite these efforts, TFR continued to fall, suggesting that structural economic factors — high cost of living, delayed marriage, female labour force participation — were more dominant than policy incentives alone.
-- **2020–2021 — COVID-19:** The pandemic disrupted family formation patterns globally. A visible dip in TLB around 2020–2021 is consistent with international trends where economic uncertainty and lockdown conditions led couples to postpone having children.
+- **1987 — \"Have Three or More\" policy:** The government reversed its earlier position and introduced a pro-natalist message encouraging Singaporeans to have three or more children if they could afford it (National Library Board Singapore 2000). An increase in births is visible around this period, but the effect was temporary and small relative to the long-run decline.
+- **1990s–2000s — Baby Bonus and other incentives:** The government introduced a range of financial supports, childcare subsidies, and housing priority policies to support families. Despite these efforts, TFR continued to fall, suggesting that many economic factors — high cost of living, delayed marriage, female labour force participation — were more dominant than policy supports alone.
+- **2020–2021 — COVID-19:** The pandemic disrupted family formation patterns globally. A visible decrease in TLB around 2020–2021 is consistent with international trends where economic uncertainty and lockdown conditions led couples to postpone having children.
 
 These events are important for model selection in the Final Report. A purely statistical model may not adequately capture these discrete structural changes, and any model that performs poorly on the 2013–2024 test period should be evaluated in light of whether the test period itself was unusual by historical standards (for example, COVID-19).
 
@@ -161,18 +164,18 @@ For **TFR (annual change)**, the PACF shows a clear spike at lag 1 while the ACF
 
 ### 6.2 Stationarity tests
 
-Tests are run in **R** (`tseries` package) with default settings. **Augmented Dickey–Fuller (ADF):** H₀ = **unit root** (non-stationary); **rejection** of H₀ (small p-value, typically compared to α = 0.05) supports **stationarity**.
+Tests are run in **R** (`tseries` package) with default settings. **Augmented Dickey–Fuller (ADF):** $H_0$ = **unit root** (non-stationary); **rejection** of $H_0$ (small p-value, typically compared to $\alpha = 0.05$) supports **stationarity**.
 
-**Justification of the formula used above (first difference).** In **Δyₜ = yₜ − yₜ₋₁**, **yₜ** means the series value in year *t*, **yₜ₋₁** means previous year value, and **Δyₜ** is the year-to-year change (annual change). We use it because the level series has strong trend, and AR/MA/ARMA needs a more stable series.
+**Justification of the formula used above (first difference).** In $\Delta y_t = y_t - y_{t-1}$, $y_t$ means the series value in year $t$, $y_{t-1}$ means the previous year value, and $\Delta y_t$ is the year-to-year change (annual change). We use it because the level series has strong trend, and AR/MA/ARMA needs a more stable series.
 
-| Series | ADF p-value | Interpretation (α = 0.05) |
+| Series | ADF p-value | Interpretation ($\alpha = 0.05$) |
 |--------|-------------|---------------------------|
-| TLB (raw) | 0.356 | Do not reject H₀ → **no evidence against a unit root**; level treated as **non-stationary**. |
-| TFR (raw) | 0.120 | Do not reject H₀ → **non-stationary** level (not significant at 5%). |
-| TLB, first difference | 0.039 | Reject H₀ → **stationary** differenced series. |
-| TFR, first difference | 0.083 | Do **not** reject H₀ at 5% (borderline); **inconclusive**—unit root not ruled out strongly. |
+| TLB (raw) | 0.356 | Do not reject $H_0$ → **no evidence against a unit root**; level treated as **non-stationary**. |
+| TFR (raw) | 0.120 | Do not reject $H_0$ → **non-stationary** level (not significant at 5%). |
+| TLB, first difference | 0.039 | Reject $H_0$ → **stationary** differenced series. |
+| TFR, first difference | 0.083 | Do **not** reject $H_0$ at 5% (borderline); **inconclusive**—unit root not ruled out strongly. |
 
-**Summary.** ADF on the raw series suggests both TLB and TFR are non-stationary in levels (they have strong trend / long memory). After one difference (annual change, `Δyₜ = yₜ − yₜ₋₁`), **TLB** clearly becomes stationary by ADF at 5%. For **TFR**, the differenced ADF result is borderline at 5%, which is not unusual for short annual series with policy breaks. In this EDA we still proceed with modelling the annual changes using simple AR / MA / ARMA candidates, and we check if residuals look like white noise.
+**Summary.** ADF on the raw series suggests both TLB and TFR are non-stationary in levels (they have strong trend / long memory). After one difference (annual change, $\Delta y_t = y_t - y_{t-1}$), **TLB** clearly becomes stationary by ADF at 5%. For **TFR**, the differenced ADF result is borderline at 5%, which is not unusual for short annual series with policy breaks. In this EDA we still proceed with modelling the annual changes using simple AR / MA / ARMA candidates, and we check if residuals look like white noise.
 
 ---
 
@@ -185,8 +188,8 @@ For each candidate model below, we report:
 - Box–Ljung test on residuals (lag 10)
 
 **Justification of terms (AIC/BIC and Box–Ljung).**  
-- **AIC/BIC**: you can think it as **fit − penalty**. Smaller is better. In formula form (for reference): **AIC = −2 log(L) + 2k** and **BIC = −2 log(L) + k log(n)**, where **L** is likelihood, **k** is number of parameters, **n** is sample size. BIC penalises complexity stronger than AIC, so BIC often prefers simpler model.  
-- **Box–Ljung**: tests whether residual autocorrelations are jointly close to zero up to a chosen lag (here lag 10). In formula form (for reference): **Q = n(n+2) ∑ₖ₌₁ᵐ rₖ²/(n−k)** where **rₖ** is residual autocorrelation at lag k. A large p-value means residuals are consistent with white noise, which is what we want after fitting a good model.
+- **AIC/BIC**: it can be considered as **fit − penalty**. Smaller is better. In formula form (for reference): **AIC = −2 log(L) + 2k** and **BIC = −2 log(L) + k log(n)**, where **L** is likelihood, **k** is number of parameters, **n** is sample size. BIC penalises complexity stronger than AIC, so BIC often prefers simpler model.  
+- **Box–Ljung**: tests whether residual autocorrelations are jointly close to zero up to a chosen lag (here lag 10). In formula form (for reference): $Q = n(n+2)\sum_{k=1}^{m} r_k^2/(n-k)$ where $r_k$ is residual autocorrelation at lag $k$. A large p-value means residuals are consistent with white noise, which is what we want after fitting a good model.
 
 ### 7.1 TLB candidate: ARMA(0,0) on annual changes
 
@@ -200,11 +203,11 @@ For each candidate model below, we report:
 
 - **Box–Ljung (lag 10):** p-value = **0.707** → do not reject white-noise residuals at 5%.
 
-**Conclusion.** ARMA(0,0) is a viable preliminary candidate for TLB annual changes. In the Final Report we will compare it with at least one more flexible model (e.g. AR(1) or ARMA(1,1)) and decide based on forecast performance on 2013–2024.
+**Conclusion.** ARMA(0,0) is a potential preliminary candidate for TLB annual changes. In the Final Report we will compare it with at least one more flexible model (e.g. AR(1) or ARMA(1,1)) and decide based on forecast performance on 2013–2024.
 
 ### 7.2 TFR candidate: AR(1) on annual changes
 
-**Model form.** We fit AR(1) on `diff(TFR_train)`. In formula form: **xₜ = c + φ₁xₜ₋₁ + εₜ**, where **xₜ** is the annual change in TFR, **c** is a constant, **φ₁** is the lag-1 effect, and **εₜ** is random shock (white noise).
+**Model form.** We fit AR(1) on `diff(TFR_train)`. In formula form: $x_t = c + \phi_1 x_{t-1} + \varepsilon_t$, where $x_t$ is the annual change in TFR, $c$ is a constant, $\phi_1$ is the lag-1 effect, and $\varepsilon_t$ is random shock (white noise).
 
 **Why this is reasonable.** In the differenced TFR PACF there is a clear spike at lag 1, while the ACF drops quickly. This is a standard visual pattern that supports an AR(1) structure.
 
@@ -220,7 +223,7 @@ For each candidate model below, we report:
 
 ## 8. Model Assessment Strategy
 
-For the Final Report, where at least two models per series are required and forecasts for 2013–2024 are needed, the model comparison will use both in-sample and out-of-sample criteria.
+For the Final Report, where we will have at least two models per series and forecasts for 2013–2024 are needed, the model comparison will use both in-sample and out-of-sample criteria.
 
 **In-sample (training fit, 1960–2012):**
 - AIC and BIC — penalise model complexity; lower is better.
@@ -253,14 +256,14 @@ The short training sample (n = 53) limits the reliability of higher-order models
 
 ---
 
-## 10. References 
+## 10. References
 
-- OBGyn Key n.d., *Singapore's pro-natalist policies: to what extent have they worked?*, OBGyn Key, viewed 29 March 2026, `https://obgynkey.com/singapores-pro-natalist-policies-to-what-extent-have-they-worked/`.
-- National Library Board Singapore 2000, *“Have three, or more if you can afford it” is announced*, NLB Singapore, viewed 29 March 2026, `https://www.nlb.gov.sg/main/article-detail?cmsuuid=1d106f7e-aca1-4c0e-ac7a-d35d0772707d`.
-- United Nations Statistics Division n.d., *Total Fertility Rate: Demographics — Population Change*, UN Statistics Division, viewed 29 March 2026, `https://www.un.org/esa/sustdev/natlinfo/indicators/methodology_sheets/demographics/total_fertility_rate.pdf`.
-- Hyndman, R.J. & Athanasopoulos, G. 2021, Forecasting: Principles and Practice, 3rd edn, OTexts, viewed 29 March 2026, https://otexts.com/fpp3/moving-averages.html.
-- Singapore Department of Statistics n.d., Live Births and Fertility Rates, SingStat, viewed 29 March 2026, https://www.singstat.gov.sg/.
-- Urban Redevelopment Authority 2023, Master Plan, URA Singapore, viewed 29 March 2026, https://www.ura.gov.sg/Corporate/Planning/Master-Plan.
+- OBGyn Key n.d., *Singapore's pro-natalist policies: to what extent have they worked?*, OBGyn Key, viewed 29 March 2026, <https://obgynkey.com/singapores-pro-natalist-policies-to-what-extent-have-they-worked/>.
+- National Library Board Singapore 2000, *“Have three, or more if you can afford it” is announced*, NLB Singapore, viewed 29 March 2026, <https://www.nlb.gov.sg/main/article-detail?cmsuuid=1d106f7e-aca1-4c0e-ac7a-d35d0772707d>.
+- United Nations Statistics Division n.d., *Total Fertility Rate: Demographics — Population Change*, UN Statistics Division, viewed 29 March 2026, <https://www.un.org/esa/sustdev/natlinfo/indicators/methodology_sheets/demographics/total_fertility_rate.pdf>.
+- Hyndman, R.J. & Athanasopoulos, G. 2021, *Forecasting: Principles and Practice*, 3rd edn, OTexts, viewed 29 March 2026, <https://otexts.com/fpp3/moving-averages.html>.
+- Singapore Department of Statistics n.d., *Live Births and Fertility Rates*, SingStat, viewed 29 March 2026, <https://www.singstat.gov.sg/>.
+- Urban Redevelopment Authority 2023, *Master Plan*, URA Singapore, viewed 29 March 2026, <https://www.ura.gov.sg/Corporate/Planning/Master-Plan>.
 
 ---
 
@@ -270,57 +273,69 @@ The short training sample (n = 53) limits the reliability of higher-order models
 
 The ADF test assesses whether a time series has a unit root (i.e. is non-stationary). The test estimates the regression:
 
-`Δyₜ = α + βt + γyₜ₋₁ + Σⱼ δⱼ Δyₜ₋ⱼ + εₜ`
+$$
+\Delta y_t = \alpha + \beta t + \gamma y_{t-1} + \sum_{j} \delta_j \Delta y_{t-j} + \varepsilon_t
+$$
 
-where **α** is a constant, **βt** is an optional linear trend, **γ** is the coefficient of interest, and the lagged difference terms **Σⱼ δⱼ Δyₜ₋ⱼ** are included to absorb any remaining serial correlation in the residuals (this is the \"augmented\" part that distinguishes ADF from the simpler Dickey–Fuller test).
+where $\alpha$ is a constant, $\beta t$ is an optional linear trend, $\gamma$ is the coefficient of interest, and the lagged difference terms $\sum_j \delta_j \Delta y_{t-j}$ are included to absorb any remaining serial correlation in the residuals (this is the "augmented" part that distinguishes ADF from the simpler Dickey–Fuller test).
 
-- **H₀:** γ = 0 — a unit root is present (series is non-stationary)  
-- **H₁:** γ < 0 — no unit root (series is stationary)
+- **$H_0$:** $\gamma = 0$ — a unit root is present (series is non-stationary)  
+- **$H_1$:** $\gamma < 0$ — no unit root (series is stationary)
 
-Rejection of H₀ at α = 0.05 (p-value < 0.05) provides evidence of stationarity. A failure to reject H₀ suggests the series has a unit root and may need differencing before modelling.
+Rejection of $H_0$ at $\alpha = 0.05$ (p-value < 0.05) provides evidence of stationarity. A failure to reject $H_0$ suggests the series has a unit root and may need differencing before modelling.
 
 ### B. First Differencing
 
-If a level series **yₜ** is non-stationary, the first difference is defined as:
+If a level series $y_t$ is non-stationary, the first difference is defined as:
 
-`Δyₜ = yₜ − yₜ₋₁`
+$$
+\Delta y_t = y_t - y_{t-1}
+$$
 
 This transformation removes a linear stochastic trend. If one difference is sufficient to achieve stationarity, the series is said to be integrated of order one, written **I(1)**. For TLB and TFR, ADF evidence supports using one difference.
 
 ### C. Autoregressive Model — AR(p)
 
-An AR(p) model on a stationary series **xₜ** (here: the first-differenced series) is:
+An AR(p) model on a stationary series $x_t$ (here: the first-differenced series) is:
 
-`xₜ = c + φ₁xₜ₋₁ + φ₂xₜ₋₂ + ... + φₚxₜ₋ₚ + εₜ`
+$$
+x_t = c + \phi_1 x_{t-1} + \phi_2 x_{t-2} + \cdots + \phi_p x_{t-p} + \varepsilon_t
+$$
 
-where **c** is a constant, **φ₁, ..., φₚ** are autoregressive coefficients, and **εₜ ~ WN(0, σ²)** is white noise. The model says the current value depends on its own past **p** values. The order **p** is identified from the PACF of the stationary series: the PACF cuts off sharply after lag **p** for a pure AR(p) process.
+where $c$ is a constant, $\phi_1, \ldots, \phi_p$ are autoregressive coefficients, and $\varepsilon_t \sim WN(0, \sigma^2)$ is white noise. The model says the current value depends on its own past $p$ values. The order $p$ is identified from the PACF of the stationary series: the PACF cuts off sharply after lag $p$ for a pure AR(p) process.
 
 ### D. Moving Average Model — MA(q)
 
-An MA(q) model on a stationary series **xₜ** is:
+An MA(q) model on a stationary series $x_t$ is:
 
-`xₜ = c + εₜ + θ₁εₜ₋₁ + θ₂εₜ₋₂ + ... + θqεₜ₋q`
+$$
+x_t = c + \varepsilon_t + \theta_1 \varepsilon_{t-1} + \theta_2 \varepsilon_{t-2} + \cdots + \theta_q \varepsilon_{t-q}
+$$
 
-where **θ₁, ..., θq** are moving average coefficients and **εₜ ~ WN(0, σ²)** is white noise. The model says the current value depends on current and past **q** shocks. The order **q** is identified from the ACF of the stationary series: the ACF cuts off sharply after lag **q** for a pure MA(q) process.
+where $\theta_1, \ldots, \theta_q$ are moving average coefficients and $\varepsilon_t \sim WN(0, \sigma^2)$ is white noise. The model says the current value depends on current and past $q$ shocks. The order $q$ is identified from the ACF of the stationary series: the ACF cuts off sharply after lag $q$ for a pure MA(q) process.
 
 ### E. Mixed Model — ARMA(p, q)
 
 An ARMA(p, q) model combines both AR and MA components:
 
-`xₜ = c + φ₁xₜ₋₁ + ... + φₚxₜ₋ₚ + εₜ + θ₁εₜ₋₁ + ... + θqεₜ₋q`
+$$
+x_t = c + \phi_1 x_{t-1} + \cdots + \phi_p x_{t-p} + \varepsilon_t + \theta_1 \varepsilon_{t-1} + \cdots + \theta_q \varepsilon_{t-q}
+$$
 
-where all notation is as above. When both ACF and PACF tail off gradually rather than cutting off sharply, a mixed ARMA model is suggested. The special case **ARMA(0,0)** reduces to **xₜ = c + εₜ**, meaning the series is pure white noise around a constant mean — used here as a baseline model for the differenced TLB series.
+where all notation is as above. When both ACF and PACF tail off gradually rather than cutting off sharply, a mixed ARMA model is suggested. The special case **ARMA(0,0)** reduces to $x_t = c + \varepsilon_t$, meaning the series is pure white noise around a constant mean — used here as a baseline model for the differenced TLB series.
 
 ### F. Box–Ljung Portmanteau Test
 
 After fitting a model, the Box–Ljung test checks whether the residual autocorrelations are jointly zero up to lag **m**:
 
-`Q = n(n+2) Σₖ₌₁ᵐ r̂ₖ² / (n−k)`
+$$
+Q = n(n+2)\sum_{k=1}^{m} \frac{\hat{r}_k^2}{n-k}
+$$
 
-where **n** is the number of observations, **r̂ₖ** is the sample autocorrelation of residuals at lag **k**, and **m** is the chosen maximum lag (here m = 10).
+where $n$ is the number of observations, $\hat{r}_k$ is the sample autocorrelation of residuals at lag $k$, and $m$ is the chosen maximum lag (here $m = 10$).
 
-- **H₀:** no autocorrelation in residuals up to lag m (residuals are white noise)  
-- **H₁:** at least one autocorrelation is non-zero
+- **$H_0$:** no autocorrelation in residuals up to lag $m$ (residuals are white noise)  
+- **$H_1$:** at least one autocorrelation is non-zero
 
 A large p-value (> 0.05) means the residuals are consistent with white noise, indicating the model has adequately captured the autocorrelation structure. A small p-value suggests remaining structure that the model has not captured.
 
@@ -328,8 +343,13 @@ A large p-value (> 0.05) means the residuals are consistent with white noise, in
 
 Both criteria balance goodness of fit against model complexity:
 
-`AIC = −2 log(L) + 2k`  
-`BIC = −2 log(L) + k log(n)`
+$$
+\mathrm{AIC} = -2\log(L) + 2k
+$$
+
+$$
+\mathrm{BIC} = -2\log(L) + k\log(n)
+$$
 
 where **L** is the maximised likelihood of the fitted model, **k** is the number of estimated parameters, and **n** is the number of observations. Lower values of AIC or BIC indicate a better model. BIC applies a stronger penalty for additional parameters than AIC, so it tends to favour more parsimonious models, which is important in small samples like the 53-year training period used here.
 
@@ -337,9 +357,17 @@ where **L** is the maximised likelihood of the fitted model, **k** is the number
 
 When forecasts for 2013–2024 are produced in the Final Report, model performance will be evaluated using:
 
-`RMSE = √( (1/h) Σₜ (yₜ − ŷₜ)² )`  
-`MAE = (1/h) Σₜ |yₜ − ŷₜ|`  
-`MAPE = (1/h) Σₜ |yₜ − ŷₜ| / |yₜ| × 100`
+$$
+\mathrm{RMSE} = \sqrt{\frac{1}{h}\sum_t (y_t - \hat{y}_t)^2}
+$$
 
-where **h = 12** is the forecast horizon (2013–2024), **yₜ** is the actual value, and **ŷₜ** is the forecast. RMSE is the primary criterion as it penalises large errors more heavily, which matters when forecasting a declining series where large deviations are most costly for policy use.
+$$
+\mathrm{MAE} = \frac{1}{h}\sum_t \lvert y_t - \hat{y}_t \rvert
+$$
+
+$$
+\mathrm{MAPE} = \frac{1}{h}\sum_t \frac{\lvert y_t - \hat{y}_t \rvert}{\lvert y_t \rvert}\times 100
+$$
+
+where $h = 12$ is the forecast horizon (2013–2024), $y_t$ is the actual value, and $\hat{y}_t$ is the forecast. RMSE is the primary criterion as it penalises large errors more heavily, which matters when forecasting a declining series where large deviations are most costly for policy use.
 
