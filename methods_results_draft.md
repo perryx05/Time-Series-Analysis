@@ -20,6 +20,16 @@ After one round of differencing, both series fluctuate around zero with no syste
 
 ---
 
+### Figure 4a — ACF and PACF of First-Differenced TFR (lag.max = 25)
+
+![Figure 4a: ACF and PACF of first-differenced TFR](methods/fig4a_acf_pacf_diff_tfr.png)
+
+### Figure 4b — ACF and PACF of First-Differenced TLB (lag.max = 25)
+
+![Figure 4b: ACF and PACF of first-differenced TLB](methods/fig4b_acf_pacf_diff_tlb.png)
+
+---
+
 ### Table 1 — ADF Stationarity Test Results
 
 Augmented Dickey-Fuller tests (H₀: unit root; alternative: stationary). Training period only (1960–2012 raw; 1961–2012 differenced).

@@ -73,6 +73,31 @@ legend("topright", bty = "n", cex = 0.72,
 dev.off()
 
 # =============================================================================
+# FIG 2a/2b: ACF/PACF of RAW series (lag.max=20)
+# =============================================================================
+png("methods/fig2a_acf_pacf_tfr_raw.png", width = 1050, height = 560, res = 150, bg = "white")
+par(mfrow = c(1, 2), mar = c(4, 5, 3, 1), oma = c(0, 0, 3, 0), bg = "white")
+acf(tfr_train,  lag.max = 20, main = "ACF",
+    xlab = "Lag (years)", ylab = "ACF", ylim = c(-0.4, 1))
+pacf(tfr_train, lag.max = 20, main = "PACF",
+     xlab = "Lag (years)", ylab = "Partial ACF", ylim = c(-0.5, 1))
+mtext("Figure 2a: ACF and PACF  --  TFR raw series (Training 1960-2012, lag.max = 20)",
+      side = 3, outer = TRUE, line = 1, cex = 0.92, font = 2)
+par(mfrow = c(1, 1))
+dev.off()
+
+png("methods/fig2b_acf_pacf_tlb_raw.png", width = 1050, height = 560, res = 150, bg = "white")
+par(mfrow = c(1, 2), mar = c(4, 5, 3, 1), oma = c(0, 0, 3, 0), bg = "white")
+acf(tlb_train,  lag.max = 20, main = "ACF",
+    xlab = "Lag (years)", ylab = "ACF", ylim = c(-0.4, 1))
+pacf(tlb_train, lag.max = 20, main = "PACF",
+     xlab = "Lag (years)", ylab = "Partial ACF", ylim = c(-0.5, 1))
+mtext("Figure 2b: ACF and PACF  --  TLB raw series (Training 1960-2012, lag.max = 20)",
+      side = 3, outer = TRUE, line = 1, cex = 0.92, font = 2)
+par(mfrow = c(1, 1))
+dev.off()
+
+# =============================================================================
 # FIG 3: First-differenced series — fixed axes
 # =============================================================================
 tlb_diff_yr <- as.integer(time(tlb_diff1))
@@ -105,6 +130,29 @@ text(1988, v88t + 0.04, paste0("1988: +", round(v88t,2)), cex=0.64, col="black",
 
 par(mfrow = c(1, 1))
 dev.off()
+
+# =============================================================================
+# FIG 4a/4b: ACF/PACF of differenced series — lag.max = 25
+# =============================================================================
+make_acf_pacf_plot <- function(series, outer_title, outfile) {
+  png(outfile, width = 1100, height = 580, res = 150, bg = "white")
+  par(mfrow = c(1, 2), mar = c(4, 5, 3, 1), oma = c(0, 0, 3, 0), bg = "white")
+  acf(series,  lag.max = 25, main = "ACF",
+      xlab = "Lag (years)", ylab = "ACF", ylim = c(-0.55, 1))
+  pacf(series, lag.max = 25, main = "PACF",
+       xlab = "Lag (years)", ylab = "Partial ACF", ylim = c(-0.55, 0.55))
+  mtext(outer_title, side = 3, outer = TRUE, line = 1, cex = 0.90, font = 2)
+  par(mfrow = c(1, 1))
+  dev.off()
+}
+
+make_acf_pacf_plot(tfr_diff1,
+  "Figure 4a: ACF and PACF  --  First-Differenced TFR (Training 1961-2012, lag.max = 25)",
+  "methods/fig4a_acf_pacf_diff_tfr.png")
+
+make_acf_pacf_plot(tlb_diff1,
+  "Figure 4b: ACF and PACF  --  First-Differenced TLB (Training 1961-2012, lag.max = 25)",
+  "methods/fig4b_acf_pacf_diff_tlb.png")
 
 # =============================================================================
 # TABLE 1: ADF + KPSS tests
