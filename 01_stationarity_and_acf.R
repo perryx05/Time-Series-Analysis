@@ -1,5 +1,5 @@
 # =============================================================================
-# STATIONARITY AND INITIAL ACF/PACF (Lag 25)
+# STATIONARITY AND ACF/PACF (Lag 50 + Zodiac)
 # =============================================================================
 
 library(tseries)
@@ -8,7 +8,6 @@ library(forecast)
 options(stringsAsFactors = FALSE)
 options(scipen = 999)
 set.seed(42)
-dir.create("methods", showWarnings = FALSE)
 
 # =============================================================================
 # DATA LOADING
@@ -26,8 +25,8 @@ log_tfr_train <- log(tfr_train)
 log_tlb_test  <- log(tlb_test)
 log_tfr_test  <- log(tfr_test)
 
-n_train    <- length(tlb_train)   # 53
-n_test     <- length(tlb_test)    # 12
+n_train    <- length(tlb_train)
+n_test     <- length(tlb_test)
 test_years <- 2013:2024
 
 tlb_diff1     <- diff(tlb_train)
@@ -35,8 +34,14 @@ tfr_diff1     <- diff(tfr_train)
 log_tlb_diff1 <- diff(log_tlb_train)
 log_tfr_diff1 <- diff(log_tfr_train)
 
-ci_band    <- 1.96 / sqrt(length(tlb_diff1))   # 0.2718
+ci_band    <- 1.96 / sqrt(length(tlb_diff1))
 train_start <- 1995
+
+# Zodiac Years
+dragon_train <- c(1964, 1976, 1988, 2000, 2012)
+tiger_train  <- c(1962, 1974, 1986, 1998, 2010)
+dragon_test  <- c(2024)
+tiger_test   <- c(2022)
 
 # =============================================================================
 # FIG 1: Raw TFR — policy annotations
@@ -46,9 +51,13 @@ par(mar = c(5, 6, 4, 2), bg = "white")
 
 plot(tfr_train, type = "l", lwd = 2.5, col = "black",
      xlim = c(1960, 2024), ylim = c(0.5, 7.2),
-     main = "Figure 1: Singapore Total Fertility Rate (1960-2024)\nWith policy events",
+     main = "Figure 1: Singapore Total Fertility Rate (1960-2024)\nWith policy events and Zodiac years",
      xlab = "Year", ylab = "Total Fertility Rate (children per woman)", las = 1)
 lines(tfr_test, lwd = 2, col = "gray45", lty = 2)
+
+# Zodiac years
+for (yr in c(dragon_train, dragon_test)) abline(v = yr, lty = 4, col = "forestgreen", lwd = 1.0)
+for (yr in c(tiger_train, tiger_test)) abline(v = yr, lty = 4, col = "darkorange2", lwd = 1.0)
 
 # Replacement level
 abline(h = 2.1, lty = 2, col = "firebrick3", lwd = 1.6)
@@ -66,35 +75,10 @@ text(1970, 2.35, "Replacement (2.1)",   col = "firebrick3",  cex = 0.70, pos = 4
 
 legend("topright", bty = "n", cex = 0.72,
        legend = c("Training TFR (1960-2012)", "Test TFR (2013-2024)",
-                  "Replacement level (2.1)", "Policy event"),
-       col = c("black", "gray45", "firebrick3", "steelblue4"),
-       lwd = c(2.5, 2, 1.6, 1.2),
-       lty = c(1, 2, 2, 1))
-dev.off()
-
-# =============================================================================
-# FIG 2a/2b: ACF/PACF of RAW series (lag.max=20)
-# =============================================================================
-png("methods/fig2a_acf_pacf_tfr_raw.png", width = 1050, height = 560, res = 150, bg = "white")
-par(mfrow = c(1, 2), mar = c(4, 5, 3, 1), oma = c(0, 0, 3, 0), bg = "white")
-acf(tfr_train,  lag.max = 20, main = "ACF",
-    xlab = "Lag (years)", ylab = "ACF", ylim = c(-0.4, 1))
-pacf(tfr_train, lag.max = 20, main = "PACF",
-     xlab = "Lag (years)", ylab = "Partial ACF", ylim = c(-0.5, 1))
-mtext("Figure 2a: ACF and PACF  --  TFR raw series (Training 1960-2012, lag.max = 20)",
-      side = 3, outer = TRUE, line = 1, cex = 0.92, font = 2)
-par(mfrow = c(1, 1))
-dev.off()
-
-png("methods/fig2b_acf_pacf_tlb_raw.png", width = 1050, height = 560, res = 150, bg = "white")
-par(mfrow = c(1, 2), mar = c(4, 5, 3, 1), oma = c(0, 0, 3, 0), bg = "white")
-acf(tlb_train,  lag.max = 20, main = "ACF",
-    xlab = "Lag (years)", ylab = "ACF", ylim = c(-0.4, 1))
-pacf(tlb_train, lag.max = 20, main = "PACF",
-     xlab = "Lag (years)", ylab = "Partial ACF", ylim = c(-0.5, 1))
-mtext("Figure 2b: ACF and PACF  --  TLB raw series (Training 1960-2012, lag.max = 20)",
-      side = 3, outer = TRUE, line = 1, cex = 0.92, font = 2)
-par(mfrow = c(1, 1))
+                  "Replacement level (2.1)", "Policy event", "Dragon year", "Tiger year"),
+       col = c("black", "gray45", "firebrick3", "steelblue4", "forestgreen", "darkorange2"),
+       lwd = c(2.5, 2, 1.6, 1.2, 1.0, 1.0),
+       lty = c(1, 2, 2, 1, 4, 4))
 dev.off()
 
 # =============================================================================
@@ -112,6 +96,9 @@ plot(tlb_diff1, type = "l", lwd = 1.6, col = "black",
      xlab = "", ylab = "Delta TLB (births/year)",
      ylim = c(-10000, 10000), las = 1)
 abline(h = 0, col = "gray55", lwd = 1.2)
+for (yr in dragon_train[dragon_train > 1960]) abline(v = yr, lty = 4, col = "forestgreen", lwd = 1.0)
+for (yr in tiger_train[tiger_train > 1960]) abline(v = yr, lty = 4, col = "darkorange2", lwd = 1.0)
+
 v87 <- tlb_diff1[tlb_diff_yr == 1987]; v88 <- tlb_diff1[tlb_diff_yr == 1988]
 v03 <- tlb_diff1[tlb_diff_yr == 2003]
 text(1987, v87 + 700, paste0("1987: +", round(v87)), cex = 0.64, col = "purple4", pos = 2)
@@ -124,6 +111,9 @@ plot(tfr_diff1, type = "l", lwd = 1.6, col = "black",
      xlab = "", ylab = "Delta TFR (per woman/year)",
      ylim = c(-0.6, 0.6), las = 1)
 abline(h = 0, col = "gray55", lwd = 1.2)
+for (yr in dragon_train[dragon_train > 1960]) abline(v = yr, lty = 4, col = "forestgreen", lwd = 1.0)
+for (yr in tiger_train[tiger_train > 1960]) abline(v = yr, lty = 4, col = "darkorange2", lwd = 1.0)
+
 v67 <- tfr_diff1[tfr_diff_yr == 1967]; v88t <- tfr_diff1[tfr_diff_yr == 1988]
 text(1967, v67 - 0.04, paste0("1967: ", round(v67,2)), cex=0.64, col="steelblue4", pos=2)
 text(1988, v88t + 0.04, paste0("1988: +", round(v88t,2)), cex=0.64, col="black", pos=4)
@@ -132,14 +122,14 @@ par(mfrow = c(1, 1))
 dev.off()
 
 # =============================================================================
-# FIG 4a/4b: ACF/PACF of differenced series — lag.max = 25
+# FIG 4a/4b: ACF/PACF of differenced series — lag.max = 50
 # =============================================================================
 make_acf_pacf_plot <- function(series, outer_title, outfile) {
   png(outfile, width = 1100, height = 580, res = 150, bg = "white")
   par(mfrow = c(1, 2), mar = c(4, 5, 3, 1), oma = c(0, 0, 3, 0), bg = "white")
-  acf(series,  lag.max = 25, main = "ACF",
+  acf(series,  lag.max = 50, main = "ACF",
       xlab = "Lag (years)", ylab = "ACF", ylim = c(-0.55, 1))
-  pacf(series, lag.max = 25, main = "PACF",
+  pacf(series, lag.max = 50, main = "PACF",
        xlab = "Lag (years)", ylab = "Partial ACF", ylim = c(-0.55, 0.55))
   mtext(outer_title, side = 3, outer = TRUE, line = 1, cex = 0.90, font = 2)
   par(mfrow = c(1, 1))
@@ -147,35 +137,9 @@ make_acf_pacf_plot <- function(series, outer_title, outfile) {
 }
 
 make_acf_pacf_plot(tfr_diff1,
-  "Figure 4a: ACF and PACF  --  First-Differenced TFR (Training 1961-2012, lag.max = 25)",
+  "Figure 4a: ACF and PACF  --  First-Differenced TFR (Training 1961-2012, lag.max = 50)",
   "methods/fig4a_acf_pacf_diff_tfr.png")
 
 make_acf_pacf_plot(tlb_diff1,
-  "Figure 4b: ACF and PACF  --  First-Differenced TLB (Training 1961-2012, lag.max = 25)",
+  "Figure 4b: ACF and PACF  --  First-Differenced TLB (Training 1961-2012, lag.max = 50)",
   "methods/fig4b_acf_pacf_diff_tlb.png")
-
-# =============================================================================
-# TABLE 1: ADF + KPSS tests
-# =============================================================================
-run_tests <- function(x, label) {
-  adf  <- adf.test(x,  alternative = "stationary")
-  kpss <- kpss.test(x, null = "Level")
-  stat <- if (adf$p.value < 0.05 && kpss$p.value > 0.05) "Stationary"
-          else if (adf$p.value >= 0.05 && kpss$p.value <= 0.05) "Non-stationary"
-          else "Conflicting/borderline"
-  cat(sprintf("  %-32s  ADF p=%.4f  KPSS stat=%.4f p=%.4f  => %s\n",
-              label, adf$p.value, kpss$statistic, kpss$p.value, stat))
-  list(label=label,
-       adf_stat=round(adf$statistic,4), adf_p=round(adf$p.value,4),
-       kpss_stat=round(kpss$statistic,4), kpss_p=round(kpss$p.value,4),
-       conclusion=stat)
-}
-
-t1_tfr_raw      <- run_tests(tfr_train,     "TFR raw (1960-2012)")
-t1_tlb_raw      <- run_tests(tlb_train,     "TLB raw (1960-2012)")
-t1_dtfr         <- run_tests(tfr_diff1,     "d(TFR) (1961-2012)")
-t1_dtlb         <- run_tests(tlb_diff1,     "d(TLB) (1961-2012)")
-t1_log_tfr_raw  <- run_tests(log_tfr_train, "log(TFR) raw")
-t1_log_tlb_raw  <- run_tests(log_tlb_train, "log(TLB) raw")
-t1_dlog_tfr     <- run_tests(log_tfr_diff1, "d(log(TFR))")
-t1_dlog_tlb     <- run_tests(log_tlb_diff1, "d(log(TLB))")
