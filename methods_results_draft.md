@@ -47,11 +47,13 @@ First-differencing clearly renders TLB stationary. The ADF result for ΔTFR is b
 
 ---
 
-### High-p Model Candidates
+### Final Selected Models: SARIMA(4,1,0)(1,1,0)[12]
 
-Upon discovering the lag-12 cycle, high-p models were tested up to $p=15$ for ARIMA and $p=2$ for SARIMA with $period=12$. 
+Due to residual problems in initial high-$p$ models ($p=12$ and $p=13$), we applied double differencing (d=1, D=1 at period 12) to fully stationary the series and capture the zodiac trend explicitly without relying on high-order AR polynomials.
 
-- **ARIMA (high-p)**: Models like ARIMA(13,1,0), ARIMA(14,1,0), and ARIMA(15,1,0) were evaluated. All failed the strict Ljung-Box tests and exhibited problematic ACF spikes at larger lags, demonstrating that standard autoregressive terms cannot adequately capture the strict 12-year seasonal repeating structure.
-- **SARIMA (high-p)**: SARIMA(1,1,0)(1,1,0)[12] and SARIMA(2,1,0)(1,1,0)[12] achieved lower AIC and better performance but still exhibited some residual structure (lag 3/4). 
+After sweeping $p \in \{1, \dots, 6\}$ for the double-differenced SARIMA models, we selected **SARIMA(4,1,0)(1,1,0)[12]** as the final parsimonious model for both TFR and TLB. 
 
-Due to residual concerns with initial high-p models, further parsimonious tuning will be explored for the final report.
+- **TLB Final Model**: Achieves white residuals (Ljung-Box p=0.182) using only 5 parameters compared to the initial model's 15, yielding a lower AIC, simpler interpretation, and a robust MAPE of ~10% over the volatile 2013-2024 test window.
+- **TFR Final Model**: Achieves white residuals (Ljung-Box p=0.076) and tracks the steep post-2012 decline smoothly, avoiding the overfitting artifacts typical of high-$p$ autoregressive designs.
+
+The final report will proceed with the $p=4$ double-differenced SARIMA specification.
