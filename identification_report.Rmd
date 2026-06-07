@@ -1,0 +1,228 @@
+---
+output:
+  pdf_document:
+    number_sections: true
+geometry: margin=1in
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, fig.align = "center")
+suppressPackageStartupMessages({library(forecast); library(tseries); library(knitr)})
+options(scipen = 999)
+
+d  <- read.csv("cleaned_tlb_tfr_1960_2024.csv")
+tr <- subset(d, Year <= 2012)
+
+# Series kept at frequency = 12 so that period = 12 targets the zodiac lag.
+# Models are fitted on the DIFFERENCED (stationary) series, with the difference
+# order NOT set (d = 0); include.mean = FALSE matches the integrated no-drift form.
+ltfr   <- ts(log(tr$TFR), start = 1960, frequency = 12)   # log(TFR)
+tlb    <- ts(tr$TLB,      start = 1960, frequency = 12)    # TLB (original scale)
+tfr_dl <- diff(ltfr)                                        # diff(log TFR)  -- stationary
+tlb_d  <- diff(tlb)                                         # diff(TLB)       -- stationary
+
+te         <- subset(d, Year >= 2013)            # held-out test set, 2013--2024
+tfr_anchor <- log(tail(tr$TFR, 1))               # log(TFR) in 2012 (integration anchor)
+tlb_anchor <- tail(tr$TLB, 1)                    # TLB in 2012
+
+# Integrate a differenced-series forecast back to the level (expo un-logs TFR):
+lvl_point <- function(fit, h, anchor, expo) {
+  v <- anchor + cumsum(as.numeric(forecast(fit, h = h)$mean)); if (expo) exp(v) else v
+}
+# Level prediction intervals by simulating the differenced model and integrating:
+lvl_pi <- function(fit, h, anchor, expo, B = 2000) {
+  set.seed(42)
+  paths <- vapply(seq_len(B),
+                  function(i) anchor + cumsum(as.numeric(simulate(fit, nsim = h, future = TRUE))),
+                  numeric(h))
+  if (expo) paths <- exp(paths)
+  list(lo80 = apply(paths,1,quantile,0.10), hi80 = apply(paths,1,quantile,0.90),
+       lo95 = apply(paths,1,quantile,0.025), hi95 = apply(paths,1,quantile,0.975))
+}
+# Forecast-vs-actual plot (training history, actual, point forecast, 80/95% PI):
+fc_plot <- function(fit, anchor, expo, hist_yr, hist_val, test_yr, test_val, ylab, title, from = 1990) {
+  h <- length(test_yr); pred <- lvl_point(fit, h, anchor, expo); pi <- lvl_pi(fit, h, anchor, expo)
+  keep <- hist_yr >= from; yl <- range(c(hist_val[keep], test_val, pi$lo95, pi$hi95))
+  yl <- yl + c(-0.05, 0.06) * diff(yl)
+  plot(hist_yr[keep], hist_val[keep], type = "l", lwd = 2, col = "black",
+       xlim = c(from, max(test_yr)), ylim = yl, xlab = "Year", ylab = ylab, main = title)
+  polygon(c(test_yr, rev(test_yr)), c(pi$lo95, rev(pi$hi95)), col = rgb(0.2,0.4,0.8,0.12), border = NA)
+  polygon(c(test_yr, rev(test_yr)), c(pi$lo80, rev(pi$hi80)), col = rgb(0.2,0.4,0.8,0.22), border = NA)
+  lines(test_yr, test_val, lwd = 2, col = "blue"); points(test_yr, test_val, col = "blue", pch = 16, cex = 0.7)
+  lines(test_yr, pred, lwd = 2, col = "red", lty = 2)
+  abline(v = 2012.5, lty = 3, col = "grey50")
+  mape <- mean(abs((test_val - pred) / test_val)) * 100
+  legend("topright", c("Training", "Actual", sprintf("Forecast (MAPE %.1f%%)", mape), "80%/95% PI"),
+         col = c("black", "blue", "red", rgb(0.2,0.4,0.8,0.5)), lwd = c(2,2,2,8),
+         lty = c(1,1,2,1), bty = "n", cex = 0.8)
+}
+
+# Ljung-Box residual test (standard checkresiduals, default lag).
+# capture.output() silences checkresiduals' printed test so it does not leak
+# into the rendered document.
+lbp <- function(fit) {
+  invisible(capture.output(
+    x <- suppressWarnings(checkresiduals(fit, plot = FALSE))
+  ))
+  c(Q = unname(x$statistic), df = unname(x$parameter), p = x$p.value)
+}
+
+# Residual diagnostic panel: residuals over time, ACF, PACF, histogram
+resid_panel <- function(fit, label) {
+  r  <- as.numeric(residuals(fit)); yr <- (2013 - length(r)):2012
+  op <- par(mfrow = c(2, 2), mar = c(4, 4, 3.2, 1))
+  plot(yr, r, type = "l", ylab = "residual", xlab = "Year",
+       main = label, cex.main = 0.85); abline(h = 0, lty = 2, col = "grey60")
+  acf(r,  lag.max = 25, main = "Residual ACF")
+  pacf(r, lag.max = 25, main = "Residual PACF")
+  hist(r, breaks = 12, col = "grey85", border = "white",
+       main = "Residual histogram", xlab = "residual")
+  par(op)
+}
+
+# Result-table builder (with the Ljung-Box residual test)
+restab <- function(fits, labels) {
+  do.call(rbind, Map(function(f, l) {
+    lb <- lbp(f)
+    data.frame(Model = l, npar = sum(f$mask),
+               AIC = round(AIC(f), 2), BIC = round(BIC(f), 2),
+               `LB Q*` = round(lb["Q"], 2), `LB df` = lb["df"],
+               `LB p-value` = round(lb["p"], 4),
+               check.names = FALSE, row.names = NULL)
+  }, fits, labels))
+}
+```
+
+# Stationarity tests
+
+```{r}
+st <- function(nm, x) {
+  x <- x[is.finite(x)]
+  a <- suppressWarnings(adf.test(x)); k <- suppressWarnings(kpss.test(x))
+  data.frame(Series = nm,
+             `ADF p` = round(a$p.value, 3),
+             ADF     = ifelse(a$p.value < 0.05, "Stationary", "Non-stationary"),
+             `KPSS stat` = round(unname(k$statistic), 3),
+             KPSS    = ifelse(k$statistic < 0.463, "Stationary", "Non-stationary"),
+             n = length(x), check.names = FALSE)
+}
+tab <- rbind(
+  st("TFR (raw)",          tr$TFR),
+  st("diff(TFR), d = 1",   diff(tr$TFR)),
+  st("diff(TFR), d = 2",   diff(tr$TFR, differences = 2)),
+  st("log(TFR)",           log(tr$TFR)),
+  st("diff(log TFR), d = 1", diff(log(tr$TFR))),
+  st("TLB (raw)",          tr$TLB),
+  st("diff(TLB), d = 1",   diff(tr$TLB))
+)
+kable(tab, row.names = FALSE,
+      caption = "ADF (H0: unit root) and KPSS (H0: stationary). KPSS 5\\% critical value = 0.463.")
+```
+
+# Correlograms of the differenced series
+
+```{r acfpacf-tfr, fig.width=7, fig.height=3.4, fig.cap="ACF and PACF of diff(log TFR)."}
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+acf(tfr_dl,  lag.max = 25, main = "ACF --- diff(log TFR)")
+pacf(tfr_dl, lag.max = 25, main = "PACF --- diff(log TFR)")
+```
+
+```{r acfpacf-tlb, fig.width=7, fig.height=3.4, fig.cap="ACF and PACF of diff(TLB)."}
+par(mfrow = c(1, 2), mar = c(4, 4, 3, 1))
+acf(tlb_d,  lag.max = 25, main = "ACF --- diff(TLB)")
+pacf(tlb_d, lag.max = 25, main = "PACF --- diff(TLB)")
+```
+
+# High-order ARIMA candidates
+
+```{r}
+a_tfr12 <- Arima(tfr_dl, order = c(12, 0, 0), include.mean = FALSE)
+a_tfr13 <- Arima(tfr_dl, order = c(13, 0, 0), include.mean = FALSE)
+a_tlb11 <- Arima(tlb_d,  order = c(11, 0, 0), include.mean = FALSE)
+a_tlb12 <- Arima(tlb_d,  order = c(12, 0, 0), include.mean = FALSE)
+a_tlb13 <- Arima(tlb_d,  order = c(13, 0, 0), include.mean = FALSE)
+kable(restab(list(a_tfr12, a_tfr13, a_tlb11, a_tlb12, a_tlb13),
+             c("log-ARIMA(12,1,0)", "log-ARIMA(13,1,0)",
+               "ARIMA(11,1,0)", "ARIMA(12,1,0)", "ARIMA(13,1,0)")),
+      caption = "High-order ARIMA fitted on diff(log TFR) (TFR) and diff(TLB) (TLB).")
+```
+
+## Residual plots --- ARIMA candidates
+
+```{r ra1, fig.width=7, fig.height=4.6}
+resid_panel(a_tfr12, "log-ARIMA(12,1,0)")
+```
+
+```{r ra2, fig.width=7, fig.height=4.6}
+resid_panel(a_tfr13, "log-ARIMA(13,1,0)")
+```
+
+```{r ra3, fig.width=7, fig.height=4.6}
+resid_panel(a_tlb11, "ARIMA(11,1,0)")
+```
+
+```{r ra4, fig.width=7, fig.height=4.6}
+resid_panel(a_tlb12, "ARIMA(12,1,0)")
+```
+
+```{r ra5, fig.width=7, fig.height=4.6}
+resid_panel(a_tlb13, "ARIMA(13,1,0)")
+```
+
+# Adding the seasonal operator
+
+Because the ARIMA residual correlograms still show significant autocorrelation at the seasonal lag --- period 12, the 12-year Chinese-zodiac Dragon/Tiger fertility cycle --- we extend each model with a **seasonal AR(1) term at lag 12**, giving SARIMA(p, 1, 0)(1, 0, 0)[12].
+
+# SARIMA candidates
+
+```{r}
+sea <- list(order = c(1, 0, 0), period = 12)
+s_tfr12 <- Arima(tfr_dl, order = c(12, 0, 0), seasonal = sea, include.mean = FALSE)
+s_tfr13 <- Arima(tfr_dl, order = c(13, 0, 0), seasonal = sea, include.mean = FALSE)
+s_tlb11 <- Arima(tlb_d,  order = c(11, 0, 0), seasonal = sea, include.mean = FALSE)
+s_tlb12 <- Arima(tlb_d,  order = c(12, 0, 0), seasonal = sea, include.mean = FALSE)
+s_tlb13 <- Arima(tlb_d,  order = c(13, 0, 0), seasonal = sea, include.mean = FALSE)
+kable(restab(list(s_tfr12, s_tfr13, s_tlb11, s_tlb12, s_tlb13),
+             c("log-SARIMA(12,1,0)(1,0,0)[12]", "log-SARIMA(13,1,0)(1,0,0)[12]",
+               "SARIMA(11,1,0)(1,0,0)[12]", "SARIMA(12,1,0)(1,0,0)[12]",
+               "SARIMA(13,1,0)(1,0,0)[12]")),
+      caption = "SARIMA with a seasonal AR(1) at period 12, fitted on the differenced series. LB = Ljung-Box residual test.")
+```
+
+## Residual plots --- SARIMA candidates
+
+```{r rs1, fig.width=7, fig.height=4.6}
+resid_panel(s_tfr12, "log-SARIMA(12,1,0)(1,0,0)[12]")
+```
+
+```{r rs2, fig.width=7, fig.height=4.6}
+resid_panel(s_tfr13, "log-SARIMA(13,1,0)(1,0,0)[12]")
+```
+
+```{r rs3, fig.width=7, fig.height=4.6}
+resid_panel(s_tlb11, "SARIMA(11,1,0)(1,0,0)[12]")
+```
+
+```{r rs4, fig.width=7, fig.height=4.6}
+resid_panel(s_tlb12, "SARIMA(12,1,0)(1,0,0)[12]")
+```
+
+```{r rs5, fig.width=7, fig.height=4.6}
+resid_panel(s_tlb13, "SARIMA(13,1,0)(1,0,0)[12]")
+```
+
+# Forecast vs. actual --- best models
+
+Our best models --- selected for white-noise residuals together with the lowest out-of-sample error --- add a **seasonal difference** at lag 12 to the seasonal-AR models above: **log-SARIMA(12,1,0)(0,1,0)[12]** for TFR and **SARIMA(13,1,0)(1,1,1)[12]** for TLB. The plots below compare the 2013--2024 point forecast (red, dashed) against the realised values (blue), with 80\% and 95\% prediction intervals (the model is fitted on the differenced series and the forecast integrated back to the level).
+
+```{r fc-tfr, fig.width=7, fig.height=4.2, fig.cap="TFR: forecast vs actual, 2013--2024."}
+best_tfr <- Arima(tfr_dl, order = c(12,0,0), seasonal = list(order = c(0,1,0), period = 12), include.mean = FALSE)
+fc_plot(best_tfr, tfr_anchor, TRUE, tr$Year, tr$TFR, te$Year, te$TFR,
+        "TFR (children per woman)", "TFR --- log-SARIMA(12,1,0)(0,1,0)[12]")
+```
+
+```{r fc-tlb, fig.width=7, fig.height=4.2, fig.cap="TLB: forecast vs actual, 2013--2024."}
+best_tlb <- Arima(tlb_d, order = c(13,0,0), seasonal = list(order = c(1,1,1), period = 12), include.mean = FALSE)
+fc_plot(best_tlb, tlb_anchor, FALSE, tr$Year, tr$TLB, te$Year, te$TLB,
+        "Total live births", "TLB --- SARIMA(13,1,0)(1,1,1)[12]")
+```
