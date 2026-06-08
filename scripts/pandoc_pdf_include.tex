@@ -1,0 +1,16 @@
+% Override Pandoc's \pandocbounded (fits image to BOTH \linewidth and \textheight).
+% That shrinks tall multi-panel PNGs much more than Markdown/HTML preview, which
+% typically scales by width only. Scale to line width; allow tall figures to use
+% vertical space (may span pages).
+\usepackage{float}
+\floatplacement{figure}{H}
+
+\makeatletter
+\renewcommand*\pandocbounded[1]{%
+  \sbox\pandoc@box{#1}%
+  \Gscale@div\@tempa{\linewidth}{\wd\pandoc@box}%
+  \ifdim\@tempa\p@<\p@\scalebox{\@tempa}{\usebox\pandoc@box}%
+  \else\usebox{\pandoc@box}%
+  \fi%
+}
+\makeatother

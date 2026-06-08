@@ -1,0 +1,30 @@
+% Map Unicode glyphs the default text font (Latin Modern Roman) lacks — ∇ and the
+% super/subscript digits used in running text and tables (e.g. ∇TFR, 10⁷) — to
+% LaTeX equivalents, so xelatex/lualatex render them instead of dropping them.
+% Package-free (BasicTeX has no newunicodechar): make each char active. No-op under pdfTeX.
+\usepackage{iftex}
+\ifPDFTeX\else
+  \catcode`\∇=\active \protected\def∇{\ensuremath{\nabla}}
+  \catcode`\⁰=\active \protected\def⁰{\textsuperscript{0}}
+  \catcode`\¹=\active \protected\def¹{\textsuperscript{1}}
+  \catcode`\²=\active \protected\def²{\textsuperscript{2}}
+  \catcode`\³=\active \protected\def³{\textsuperscript{3}}
+  \catcode`\⁴=\active \protected\def⁴{\textsuperscript{4}}
+  \catcode`\⁵=\active \protected\def⁵{\textsuperscript{5}}
+  \catcode`\⁶=\active \protected\def⁶{\textsuperscript{6}}
+  \catcode`\⁷=\active \protected\def⁷{\textsuperscript{7}}
+  \catcode`\⁸=\active \protected\def⁸{\textsuperscript{8}}
+  \catcode`\⁹=\active \protected\def⁹{\textsuperscript{9}}
+  \catcode`\₀=\active \protected\def₀{\textsubscript{0}}
+  \catcode`\₁=\active \protected\def₁{\textsubscript{1}}
+  \catcode`\₂=\active \protected\def₂{\textsubscript{2}}
+  \catcode`\₃=\active \protected\def₃{\textsubscript{3}}
+  \catcode`\₄=\active \protected\def₄{\textsubscript{4}}
+\fi
+
+% Shrink tables slightly so long model names (e.g. SARIMA(13,1,0)(1,1,0)[12]) and
+% multi-word cells ("Non-stationary") fit their columns without crowding.
+\usepackage{etoolbox}
+\AtBeginEnvironment{longtable}{\small}
+\AtBeginEnvironment{tabular}{\small}
+\setlength{\tabcolsep}{5pt}
