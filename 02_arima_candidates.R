@@ -137,12 +137,12 @@ diag_panel <- function(resid_vec, start_yr, label, outfile) {
 diag_panel(as.numeric(residuals(tfr_best$model)), 1961,
            paste0("ARIMA-Only Residuals  --  TFR: ", tfr_best$label,
                   "  [BL10 p=", tfr_best$bl10p, "  BL20 p=", tfr_best$bl20p, "]"),
-           "methods/fig5a_arima_tfr.png")
+           "plots/fig5a_arima_tfr.png")
 
 diag_panel(as.numeric(residuals(tlb_best$model)), 1961,
            paste0("ARIMA-Only Residuals  --  TLB: ", tlb_best$label,
                   "  [BL10 p=", tlb_best$bl10p, "  BL20 p=", tlb_best$bl20p, "]"),
-           "methods/fig5b_arima_tlb.png")
+           "plots/fig5b_arima_tlb.png")
 
 # =============================================================================
 # FORECASTS
@@ -187,10 +187,10 @@ make_fc_plot(tfr_ts, tfr_test, fc_tfr_a, lo80_tfr_a, hi80_tfr_a, lo95_tfr_a, hi9
              "TFR (children per woman)",
              paste0("TFR Forecast (ARIMA-only): ", tfr_best$label,
                     "  [MAPE=", round(acc_tfr_a$mape,2), "%]"),
-             "methods/fig6a_arima_tfr.png")
+             "plots/fig6a_arima_tfr.png")
 
 make_fc_plot(tlb_ts, tlb_test, fc_tlb_a, lo80_tlb_a, hi80_tlb_a, lo95_tlb_a, hi95_tlb_a,
              "Total Live Births",
              paste0("TLB Forecast (ARIMA-only): ", tlb_best$label,
                     "  [MAPE=", round(acc_tlb_a$mape,2), "%]"),
-             "methods/fig6b_arima_tlb.png")
+             "plots/fig6b_arima_tlb.png")

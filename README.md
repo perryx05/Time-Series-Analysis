@@ -45,9 +45,14 @@ This regenerates figures under `plots/` and prints diagnostics to the console.
 
 ## Export the write-up to PDF (optional)
 
-If you want a PDF copy of `eda_report.md`, one straightforward approach is Pandoc:
+From the repository root:
 
 ```bash
-pandoc eda_report.md -o eda_report.pdf --pdf-engine=xelatex
+chmod +x scripts/export_eda_report_pdf.sh
+./scripts/export_eda_report_pdf.sh
 ```
+
+This tries **Pandoc + LaTeX** (`xelatex`, then `pdflatex`, then `lualatex`) and writes `eda_report.pdf` when a TeX engine is available. If not, it writes **`build/eda_report_print.html`** — open that file in a browser and use **Print → Save as PDF** (no LaTeX required).
+
+You need **Pandoc** (`brew install pandoc`). PDF via Pandoc also needs a TeX distribution (e.g. MacTeX) unless you use the HTML print route.
 

@@ -135,12 +135,12 @@ diag_panel <- function(resid_vec, start_yr, label, outfile) {
 diag_panel(as.numeric(residuals(tfr_best$model)), 1961,
            paste0("SARIMA Residual Diagnostics  --  TFR: ", tfr_best$label,
                   "  [BL10 p=", tfr_best$bl10p, "  BL20 p=", tfr_best$bl20p, "]"),
-           "methods/fig5a_resid_diag_tfr.png")
+           "plots/fig5a_resid_diag_tfr.png")
 
 diag_panel(as.numeric(residuals(tlb_best$model)), 1961,
            paste0("SARIMA Residual Diagnostics  --  TLB: ", tlb_best$label,
                   "  [BL10 p=", tlb_best$bl10p, "  BL20 p=", tlb_best$bl20p, "]"),
-           "methods/fig5b_resid_diag_tlb.png")
+           "plots/fig5b_resid_diag_tlb.png")
 
 # =============================================================================
 # FORECASTS
@@ -185,10 +185,10 @@ make_fc_plot(tfr_ts, tfr_test, fc_tfr, lo80_tfr, hi80_tfr, lo95_tfr, hi95_tfr,
              "TFR (children per woman)",
              paste0("TFR Forecast (SARIMA): ", tfr_best$label,
                     "  [MAPE=", round(acc_tfr$mape,2), "%]"),
-             "methods/fig6a_forecast_tfr.png")
+             "plots/fig6a_forecast_tfr.png")
 
 make_fc_plot(tlb_ts, tlb_test, fc_tlb, lo80_tlb, hi80_tlb, lo95_tlb, hi95_tlb,
              "Total Live Births",
              paste0("TLB Forecast (SARIMA): ", tlb_best$label,
                     "  [MAPE=", round(acc_tlb$mape,2), "%]"),
-             "methods/fig6b_forecast_tlb.png")
+             "plots/fig6b_forecast_tlb.png")

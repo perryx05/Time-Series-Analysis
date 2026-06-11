@@ -5,7 +5,7 @@
 #   TLB initial : ARIMA(13,1,0)                (clean resid ACF; LB marginal)
 #   TLB improved: SARIMA(4,1,0)(1,1,0)[12]     (white; MAPE 12.1; prof template)
 #                 SARIMA(4,1,0)(0,1,1)[12]     (white; MAPE 8.89; airline, low AIC)
-# Figures -> figures/fin_*.png
+# Figures -> plots/fin_*.png
 # =============================================================================
 suppressPackageStartupMessages({ library(forecast) })
 options(stringsAsFactors=FALSE, scipen=999)
@@ -32,7 +32,7 @@ labs <- c(tfr_init="log-ARIMA(15,1,0)", tfr_impr="log-SARIMA(4,1,0)(1,1,0)[12]",
 # residual ACF/PACF panels
 for (k in names(fits)) {
   r <- as.numeric(residuals(fits[[k]])); r <- r[is.finite(r)]
-  png(sprintf("figures/fin_%s_resid.png", k), width=1000, height=440, res=110, bg="white")
+  png(sprintf("plots/fin_%s_resid.png", k), width=1000, height=440, res=110, bg="white")
   par(mfrow=c(1,2), mar=c(4,4.5,3.2,1))
   acf(r,  lag.max=36, main=paste("Residual ACF -", labs[k]))
   pacf(r, lag.max=36, main=paste("Residual PACF -", labs[k]))
@@ -40,14 +40,14 @@ for (k in names(fits)) {
 }
 # checkresiduals 4-panel for the improved models
 for (k in c("tfr_impr","tlb_impr","tlb_air")) {
-  png(sprintf("figures/fin_%s_check.png", k), width=950, height=720, res=110, bg="white")
+  png(sprintf("plots/fin_%s_check.png", k), width=950, height=720, res=110, bg="white")
   suppressWarnings(checkresiduals(fits[[k]])); dev.off()
 }
 
 # forecast plots
 fc_plot <- function(k, hist_years, hist_vals, obs, ylab, title) {
   fit <- fits[[k]]; fc <- forecast(fit, h=length(obs), biasadj=FALSE)
-  png(sprintf("figures/fin_%s_forecast.png", k), width=1000, height=520, res=110, bg="white")
+  png(sprintf("plots/fin_%s_forecast.png", k), width=1000, height=520, res=110, bg="white")
   par(mar=c(4,4.7,3.2,1))
   yr <- c(hist_years, ty)
   yl <- range(c(hist_vals, obs, as.numeric(fc$lower[,2]), as.numeric(fc$upper[,2])), na.rm=TRUE)
@@ -70,4 +70,4 @@ fc_plot("tfr_impr", train$Year, train$TFR, tfr_test, "TFR", paste0("TFR improved
 fc_plot("tlb_init", train$Year, train$TLB, tlb_test, "TLB", paste0("TLB initial - ", labs["tlb_init"]))
 fc_plot("tlb_impr", train$Year, train$TLB, tlb_test, "TLB", paste0("TLB improved - ", labs["tlb_impr"]))
 fc_plot("tlb_air",  train$Year, train$TLB, tlb_test, "TLB", paste0("TLB improved (airline) - ", labs["tlb_air"]))
-cat("Wrote figures/fin_*.png\n")
+cat("Wrote plots/fin_*.png\n")

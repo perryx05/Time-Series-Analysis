@@ -63,5 +63,5 @@ resid_fig <- function(f, lab, fname) {
   dev.off(); cat("wrote", fname, "\n")
 }
 cat("\n")
-resid_fig(tfr_fin, "log-SARIMA(4,1,0)(1,1,0)[12]", "figures/fr2_fig4_resid_tfr.png")
-resid_fig(tlb_fin, "SARIMA(4,1,0)(1,1,0)[12]",     "figures/fr2_fig5_resid_tlb.png")
+resid_fig(tfr_fin, "log-SARIMA(4,1,0)(1,1,0)[12]", "plots/fr2_fig4_resid_tfr.png")
+resid_fig(tlb_fin, "SARIMA(4,1,0)(1,1,0)[12]",     "plots/fr2_fig5_resid_tlb.png")

@@ -100,7 +100,7 @@ All analyses were carried out in R version 4.4.3 (R Core Team, 2025), run within
 
 Figure 1 plots the two raw series. Both decline almost monotonically over six decades, with the fertility rate crossing the replacement level around 1975 and the Dragon-year peaks (marked) clearly visible as local upturns in births. This sustained, level-dependent decline, with no tendency to revert to a fixed mean, is a characteristic feature of a non-stationary process, which the formal tests in Table 1 confirm.
 
-![**Figure 1.** Singapore's total fertility rate (left) and total live births (right), 1960–2024. The dashed vertical line marks the train/test split at 2012; green points mark the Dragon years (1964, 1976, 1988, 2000, 2012, 2024).](figures/fr_fig0_raw_series.png)
+![**Figure 1.** Singapore's total fertility rate (left) and total live births (right), 1960–2024. The dashed vertical line marks the train/test split at 2012; green points mark the Dragon years (1964, 1976, 1988, 2000, 2012, 2024).](plots/fr_fig0_raw_series.png)
 
 **Table 1.** Stationarity tests on the training period (1960–2012). ADF null: a unit root (non-stationary); KPSS null: stationarity. The ADF decision uses the reported _p_-value at the 5% level; the KPSS decision compares the test statistic with its 5% critical value of 0.463.
 
@@ -117,7 +117,7 @@ The raw TFR series failed both tests (ADF _p_ = 0.120; KPSS = 1.071), confirming
 
 ### 3.2 Identification: autocorrelation patterns
 
-![**Figure 2.** Sample ACF and PACF after differencing, with 95% bands dashed. Top two rows: the first-differenced log-TFR and first-differenced TLB (to lag 45), whose PACFs show the zodiac cluster at lag 12 with a recurrence near lag 24. Bottom two rows: the same two series after an additional seasonal difference (the doubly-differenced series, to lag 24), whose PACFs show a single significant spike at lag 4 (about −0.42) and little beyond — the basis for the non-seasonal order p = 4 (Section 3.3).](figures/fr_fig1_acf_pacf.png)
+![**Figure 2.** Sample ACF and PACF after differencing, with 95% bands dashed. Top two rows: the first-differenced log-TFR and first-differenced TLB (to lag 45), whose PACFs show the zodiac cluster at lag 12 with a recurrence near lag 24. Bottom two rows: the same two series after an additional seasonal difference (the doubly-differenced series, to lag 24), whose PACFs show a single significant spike at lag 4 (about −0.42) and little beyond — the basis for the non-seasonal order p = 4 (Section 3.3).](plots/fr_fig1_acf_pacf.png)
 
 Figure 2 (top two rows) shows the sample ACF and PACF of the two first-differenced series. For $\nabla \log(\text{TFR}_t)$, the partial autocorrelations are small at most short lags but form a distinct cluster around the boundary of one decade, with significant spikes near lags 12 and 13 and the largest at lag 12; the ACF shows the same spike at lag 12 and a further recurrence near lag 24, the second seasonal harmonic. As explained in Section 2.6, reaching this cluster with a non-seasonal model would require an autoregressive order of at least 12, so a seasonal specification at period 12 — the twelve-year Dragon-year cycle documented by Agarwal et al. (2021) — is the economical reading, and is the form fitted in Section 3.3. The PACF of $\nabla \text{TLB}_t$ shows the same cluster, with significant spikes around lags 11 to 13, which indicates that the births series carries the zodiac structure as well and calls for an equivalent treatment.
 
@@ -127,7 +127,7 @@ We fit each series through the iterative Box–Jenkins loop of Section 2.7: a co
 
 **The initial models.** Read conservatively, the PACF (Figure 2) calls for a non-seasonal autoregression reaching the whole zodiac cluster: the births PACF is significant out to lag 13, and the rate's peaks at lag 12. Taking each at face value, together with the seasonal AR(1) and the seasonal difference, gives the initial models **SARIMA(13,1,0)(1,1,0)[12]** for the TLB and **SARIMA(12,1,0)(1,1,0)[12]** for the TFR. Both are viable: every residual autocorrelation lies within the band (Figure 3), and the Ljung–Box test does not reject — TLB $Q^* = 5.43$ ($p = 0.14$), comfortably non-significant; TFR $Q^* = 7.81$ ($p = 0.050$), only marginally so. But each spends a long autoregressive polynomial in which only a few coefficients carry signal — two of fourteen are individually significant for the TLB, four of thirteen for the TFR — which on 53 observations is the warning sign of over-parameterisation.
 
-![**Figure 3.** Residual ACF of the two initial models, log-SARIMA(12,1,0)(1,1,0)[12] for the TFR (left) and SARIMA(13,1,0)(1,1,0)[12] for the TLB (right). Both lie entirely within the 95% significance bands, so both are viable.](figures/fr2_fig3_initial_resid_acf.png)
+![**Figure 3.** Residual ACF of the two initial models, log-SARIMA(12,1,0)(1,1,0)[12] for the TFR (left) and SARIMA(13,1,0)(1,1,0)[12] for the TLB (right). Both lie entirely within the 95% significance bands, so both are viable.](plots/fr2_fig3_initial_resid_acf.png)
 
 **The final models.** Inspecting the intermediate coefficients shows that those at lags 5 and above are near zero and insignificant, so the non-seasonal order is reduced to **4**. The PACF of the _doubly_-differenced series $(1-B)(1-B^{12})X_t$ (the lower two rows of Figure 2) confirms this: it shows a clearly significant spike at lag 4 (partial autocorrelation −0.42 for both series) and no significant structure beyond. The pared-back **SARIMA(4,1,0)(1,1,0)[12]** keeps the residuals equally clean — fully white, with no autocorrelation outside the band and a comfortably non-significant Ljung–Box test (TFR $Q^* = 7.66$, $p = 0.26$; TLB $Q^* = 6.48$, $p = 0.37$; Figures 4–5) — while cutting the model to five parameters. It is adopted for both series. All coefficients are interior and the models are pure autoregressions, so no invertibility question arises, and the fourth-order term is individually significant in both ($t = -2.56$ for the TFR, $t = -2.92$ for the TLB).
 
@@ -167,9 +167,9 @@ with $\hat{\phi} = (0.292,\,0.081,\,0.231,\,-0.441)$, $\hat{\Phi}_1 = -0.252$ an
 
 Figures 4 and 5 present the full residual diagnostics for the two adopted models: the residuals over time, the residual ACF, a histogram with a fitted normal curve, and a normal quantile–quantile (Q–Q) plot.
 
-![**Figure 4.** Residual diagnostics for the adopted TFR model, log-SARIMA(4,1,0)(1,1,0)[12]: residuals over time, residual ACF (to two seasonal cycles), a histogram with a fitted normal curve, and a normal Q–Q plot. The Shapiro–Wilk p-value shown is computed on the post-initialisation residuals.](figures/enh_resid_tfr.png)
+![**Figure 4.** Residual diagnostics for the adopted TFR model, log-SARIMA(4,1,0)(1,1,0)[12]: residuals over time, residual ACF (to two seasonal cycles), a histogram with a fitted normal curve, and a normal Q–Q plot. The Shapiro–Wilk p-value shown is computed on the post-initialisation residuals.](plots/enh_resid_tfr.png)
 
-![**Figure 5.** Residual diagnostics for the adopted TLB model, SARIMA(4,1,0)(1,1,0)[12], with the same panels as Figure 4. The single point above the upper tail of the Q–Q plot is the 1988 Dragon-year residual.](figures/enh_resid_tlb.png)
+![**Figure 5.** Residual diagnostics for the adopted TLB model, SARIMA(4,1,0)(1,1,0)[12], with the same panels as Figure 4. The single point above the upper tail of the Q–Q plot is the 1988 Dragon-year residual.](plots/enh_resid_tlb.png)
 
 For both adopted models the residuals fluctuate around zero with no visible trend or periodicity, and the histograms are approximately symmetric and bell-shaped. **Every residual autocorrelation lies within the 95% bands**, including at the seasonal lags 12 and 24. The Ljung–Box tests confirm whiteness: $Q^* = 7.66$ on 6 degrees of freedom ($p = 0.264$) for the TFR model and $Q^* = 6.48$ on 6 degrees of freedom ($p = 0.372$) for the TLB model. The larger initial models were already white (Figure 3); reducing the order preserves that whiteness, so the gain from the refinement is in parsimony and AIC, not in the residuals.
 
@@ -177,9 +177,9 @@ A normal Q–Q plot and a Shapiro–Wilk test then check the Gaussian assumption
 
 ### 3.5 Forecast evaluation
 
-![**Figure 6.** TFR forecast for 2013–2024 from log-SARIMA(4,1,0)(1,1,0)[12]. Black: training data; blue: actual; dashed red: point forecast; shaded: 80% and 95% prediction intervals; the forecast is back-transformed with exp(). The 2020 (COVID-19) and 2024 (Dragon-year) points are marked.](figures/fr2_fig6_forecast_tfr.png)
+![**Figure 6.** TFR forecast for 2013–2024 from log-SARIMA(4,1,0)(1,1,0)[12]. Black: training data; blue: actual; dashed red: point forecast; shaded: 80% and 95% prediction intervals; the forecast is back-transformed with exp(). The 2020 (COVID-19) and 2024 (Dragon-year) points are marked.](plots/fr2_fig6_forecast_tfr.png)
 
-![**Figure 7.** TLB forecast for 2013–2024 from SARIMA(4,1,0)(1,1,0)[12], with the same conventions.](figures/fr2_fig7_forecast_tlb.png)
+![**Figure 7.** TLB forecast for 2013–2024 from SARIMA(4,1,0)(1,1,0)[12], with the same conventions.](plots/fr2_fig7_forecast_tlb.png)
 
 **Table 4.** Forecast accuracy of the adopted (improved) models on the test set (2013–2024).
 

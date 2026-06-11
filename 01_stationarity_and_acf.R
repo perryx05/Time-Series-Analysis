@@ -46,7 +46,7 @@ tiger_test   <- c(2022)
 # =============================================================================
 # FIG 1: Raw TFR — policy annotations
 # =============================================================================
-png("methods/fig1_tfr_raw.png", width = 1100, height = 600, res = 150, bg = "white")
+png("plots/fig1_tfr_raw.png", width = 1100, height = 600, res = 150, bg = "white")
 par(mar = c(5, 6, 4, 2), bg = "white")
 
 plot(tfr_train, type = "l", lwd = 2.5, col = "black",
@@ -87,7 +87,7 @@ dev.off()
 tlb_diff_yr <- as.integer(time(tlb_diff1))
 tfr_diff_yr <- as.integer(time(tfr_diff1))
 
-png("methods/fig3_diff_series.png", width = 1100, height = 750, res = 150, bg = "white")
+png("plots/fig3_diff_series.png", width = 1100, height = 750, res = 150, bg = "white")
 par(mfrow = c(2, 1), mar = c(2, 7.5, 3.5, 2), oma = c(3, 0, 0, 0), bg = "white")
 
 # Top: TLB differences
@@ -138,8 +138,8 @@ make_acf_pacf_plot <- function(series, outer_title, outfile) {
 
 make_acf_pacf_plot(tfr_diff1,
   "Figure 4a: ACF and PACF  --  First-Differenced TFR (Training 1961-2012, lag.max = 50)",
-  "methods/fig4a_acf_pacf_diff_tfr.png")
+  "plots/fig4a_acf_pacf_diff_tfr.png")
 
 make_acf_pacf_plot(tlb_diff1,
   "Figure 4b: ACF and PACF  --  First-Differenced TLB (Training 1961-2012, lag.max = 50)",
-  "methods/fig4b_acf_pacf_diff_tlb.png")
+  "plots/fig4b_acf_pacf_diff_tlb.png")

@@ -28,7 +28,7 @@ dec <- function(values) {
 }
 dt <- dec(log(data$TFR)); db <- dec(data$TLB)
 
-png("figures/enh_decomp.png", width = 1180, height = 980, res = 120, bg = "white")
+png("plots/enh_decomp.png", width = 1180, height = 980, res = 120, bg = "white")
 par(mfrow = c(4, 2), mar = c(2.6, 4.4, 2.2, 1), oma = c(2, 0, 2.4, 0))
 panel <- function(y, ylab, main = NULL, col = "grey20") {
   plot(yr_all, y, type = "l", lwd = 1.6, col = col, xlab = "", ylab = ylab, main = main)
@@ -40,7 +40,7 @@ panel(dt$seas, "Seasonal\n(12-yr)", col = "steelblue4"); panel(db$seas, "Seasona
 panel(dt$rem, "Remainder", col = "grey45");       panel(db$rem, "Remainder", col = "grey45")
 mtext("STL decomposition (period = 12-year zodiac cycle), 1960-2024", outer = TRUE, cex = 0.95, font = 2)
 mtext("Year", side = 1, outer = TRUE, line = 0.6, cex = 0.8)
-dev.off(); cat("wrote figures/enh_decomp.png\n")
+dev.off(); cat("wrote plots/enh_decomp.png\n")
 cat(sprintf("  seasonal amplitude: log(TFR) range = %.3f (=%.1f%% on TFR); TLB range = %.0f births\n",
             diff(range(dt$seas)), (exp(diff(range(dt$seas)))-1)*100, diff(range(db$seas))))
 
@@ -66,5 +66,5 @@ resid_qq <- function(fit, lab, fname) {
   cat(sprintf("wrote %s  (post-burn-in Shapiro-Wilk W = %.3f, p = %.3f)\n", fname, sw$statistic, sw$p.value))
   invisible(sw)
 }
-resid_qq(fit_tfr, "log-SARIMA(4,1,0)(1,1,0)[12]", "figures/enh_resid_tfr.png")
-resid_qq(fit_tlb, "SARIMA(4,1,0)(1,1,0)[12]",     "figures/enh_resid_tlb.png")
+resid_qq(fit_tfr, "log-SARIMA(4,1,0)(1,1,0)[12]", "plots/enh_resid_tfr.png")
+resid_qq(fit_tlb, "SARIMA(4,1,0)(1,1,0)[12]",     "plots/enh_resid_tlb.png")

@@ -34,14 +34,14 @@ full(tfr_s12,c(0,1,1),0,   tfr_test,"TFR alt SARIMA(4,1,0)(0,1,1)[12] (airline)"
 full(tlb_s12,c(1,1,0),NULL,tlb_test,"TLB alt SARIMA(4,1,0)(1,1,0)[12] (seasonal AR)")
 
 # ---- Fig 3: residual ACFs of the two adopted models -------------------------
-png("figures/fr2_fig3_initial_resid_acf.png", width=1180, height=470, res=130, bg="white")
+png("plots/fr2_fig3_initial_resid_acf.png", width=1180, height=470, res=130, bg="white")
 par(mfrow=c(1,2), mar=c(4.2,4.5,3.4,1))
 acf(as.numeric(residuals(tfr_fin)), lag.max=24, main="TFR final: log-SARIMA(4,1,0)(1,1,0)[12]")
 acf(as.numeric(residuals(tlb_fin)), lag.max=24, main="TLB final: SARIMA(4,1,0)(0,1,1)[12]")
 dev.off(); cat("\nwrote fr2_fig3_initial_resid_acf.png\n")
 
 # ---- Fig 5: TLB airline checkresiduals --------------------------------------
-png("figures/fr2_fig5_resid_tlb.png", width=980, height=720, res=120, bg="white")
+png("plots/fr2_fig5_resid_tlb.png", width=980, height=720, res=120, bg="white")
 suppressWarnings(checkresiduals(tlb_fin)); dev.off(); cat("wrote fr2_fig5_resid_tlb.png\n")
 
 # ---- Fig 7: TLB airline forecast --------------------------------------------
@@ -64,4 +64,4 @@ p<-ggplot()+
   annotate("point",x=2024,y=fc_df$Actual[fc_df$Year==2024],colour="forestgreen",size=2.4)+
   annotate("text",x=2024,y=fc_df$Actual[fc_df$Year==2024],label="2024 (Dragon)",colour="forestgreen",size=2.9,hjust=1.1,vjust=1.4)+
   labs(title="TLB forecast 2013-2024 - SARIMA(4,1,0)(0,1,1)[12]",x="Year",y="Total live births")+theme_bw()
-ggsave("figures/fr2_fig7_forecast_tlb.png",p,width=9,height=5,dpi=130); cat("wrote fr2_fig7_forecast_tlb.png\n")
+ggsave("plots/fr2_fig7_forecast_tlb.png",p,width=9,height=5,dpi=130); cat("wrote fr2_fig7_forecast_tlb.png\n")

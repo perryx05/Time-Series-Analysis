@@ -7,7 +7,7 @@
 #
 # TFR: log transform (lambda = 0) + d = 1 + seasonal AR at period 12.
 # TLB: original scale + d = 1 + seasonal AR at period 12.
-# Train 1960-2012, test 2013-2024.  Figures -> figures/bj_*.  All numbers printed.
+# Train 1960-2012, test 2013-2024.  Figures -> plots/bj_*.  All numbers printed.
 # =============================================================================
 
 suppressPackageStartupMessages({
@@ -94,7 +94,7 @@ stat_tbl <- rbind(
 print(stat_tbl, row.names = FALSE)
 
 # Figure: raw TFR / log TFR / diff(log TFR) — motivates the transform
-png("figures/bj_step1_tfr_transform.png", width = 1100, height = 380, res = 110, bg = "white")
+png("plots/bj_step1_tfr_transform.png", width = 1100, height = 380, res = 110, bg = "white")
 par(mfrow = c(1, 3), mar = c(4, 4.5, 3, 1))
 plot(tfr_train, type = "l", lwd = 2, col = "black",
      main = "Raw TFR (1960–2012)", xlab = "Year", ylab = "TFR")
@@ -103,7 +103,7 @@ plot(log(tfr_train), type = "l", lwd = 2, col = "steelblue4",
 plot(diff(log(tfr_train)), type = "l", lwd = 2, col = "firebrick3",
      main = "diff(log TFR), d = 1", xlab = "Year", ylab = "Δ log TFR"); abline(h = 0, lty = 3)
 dev.off()
-cat("Wrote figures/bj_step1_tfr_transform.png\n")
+cat("Wrote plots/bj_step1_tfr_transform.png\n")
 
 # =============================================================================
 # STEP 2 — ACF/PACF OF THE STATIONARY SERIES
@@ -115,13 +115,13 @@ rule("STEP 2 — ACF/PACF of diff(log TFR) and diff(TLB)")
 seas_guides <- function() abline(v = c(12, 24, 36, 48),
                                  col = adjustcolor("forestgreen", 0.45), lty = 3, lwd = 1)
 
-png("figures/bj_step2_acfpacf_tfr.png", width = 1200, height = 470, res = 110, bg = "white")
+png("plots/bj_step2_acfpacf_tfr.png", width = 1200, height = 470, res = 110, bg = "white")
 par(mfrow = c(1, 2), mar = c(4, 4.5, 3.5, 1))
 acf(diff(log(tfr_train)),  lag.max = 50, main = "ACF — diff(log TFR), 1960–2012 (lag.max = 50)");  seas_guides()
 pacf(diff(log(tfr_train)), lag.max = 50, main = "PACF — diff(log TFR), 1960–2012 (lag.max = 50)"); seas_guides()
 dev.off()
 
-png("figures/bj_step2_acfpacf_tlb.png", width = 1200, height = 470, res = 110, bg = "white")
+png("plots/bj_step2_acfpacf_tlb.png", width = 1200, height = 470, res = 110, bg = "white")
 par(mfrow = c(1, 2), mar = c(4, 4.5, 3.5, 1))
 acf(diff(tlb_train),  lag.max = 50, main = "ACF — diff(TLB), 1960–2012 (lag.max = 50)");  seas_guides()
 pacf(diff(tlb_train), lag.max = 50, main = "PACF — diff(TLB), 1960–2012 (lag.max = 50)"); seas_guides()
@@ -144,7 +144,7 @@ pacf_spikes(diff(tlb_train),      "diff(TLB)")
 # the residuals of the model fitted to the DIFFERENCED (stationary) series; white
 # noise requires checkresiduals p > 0.05 AND no residual-ACF spike.
 # =============================================================================
-rule("STEP 3 — identification: high-order ARIMA then SARIMA -> figures/bj_step3_*")
+rule("STEP 3 — identification: high-order ARIMA then SARIMA -> plots/bj_step3_*")
 
 # Fit a model ON THE DIFFERENCED SERIES (series_d), with the difference order NOT
 # set (the order's middle entry is 0); include.mean = FALSE matches the no-drift
@@ -163,7 +163,7 @@ fit_eval <- function(series_d, order, seasonal = c(0,0,0), test, anchor, expo,
   rr  <- as.numeric(r); n <- length(rr); ci <- 1.96 / sqrt(n)
   ac  <- acf(rr, lag.max = 25, plot = FALSE)$acf[, 1, 1][-1]   # drop lag 0
   cross <- which(abs(ac) > ci)                                  # ACF bars outside band
-  fname <- sprintf("figures/bj_step3_%s.png", tag)
+  fname <- sprintf("plots/bj_step3_%s.png", tag)
   png(fname, width = 950, height = 460, res = 110, bg = "white")
   par(mfrow = c(1, 2), mar = c(4, 4.5, 3.5, 1))
   acf(rr,  lag.max = 25, main = paste("Residual ACF —",  label), xlab = "Lag (years)")
@@ -324,9 +324,9 @@ rule("STEP 3 — checkresiduals for the final models (STANDARD default lag, no l
 # The final models add a SEASONAL DIFFERENCE (D=1) on top of the d=1 difference, so
 # their residuals pass the STANDARD checkresiduals at its default lag -- no special
 # lag choice is needed (unlike the D=0 seasonal-AR initials).
-png("figures/bj_step3_tfr_final_check.png", width = 950, height = 720, res = 110, bg = "white")
+png("plots/bj_step3_tfr_final_check.png", width = 950, height = 720, res = 110, bg = "white")
 cr_tfr <- checkresiduals(tfr_final$fit); dev.off()
-png("figures/bj_step3_tlb_final_check.png", width = 950, height = 720, res = 110, bg = "white")
+png("plots/bj_step3_tlb_final_check.png", width = 950, height = 720, res = 110, bg = "white")
 cr_tlb <- checkresiduals(tlb_final$fit); dev.off()
 cat("\nTFR final (standard checkresiduals): "); print(cr_tfr)
 cat("\nTLB final (standard checkresiduals): "); print(cr_tlb)
@@ -382,13 +382,13 @@ forecast_plot <- function(fit, hist_years, hist_vals, fc_years, actual_vals,
 # lognormal predictive distribution — the conventional point forecast.
 fc_tfr <- forecast_plot(tfr_final$fit, train_years, train$TFR, test_years, tfr_test,
                         paste0("TFR Forecast 2013–2024 — ", tfr_final$label),
-                        "TFR (children per woman)", "figures/bj_step4_forecast_tfr.png")
+                        "TFR (children per woman)", "plots/bj_step4_forecast_tfr.png")
 fc_tlb <- forecast_plot(tlb_final$fit, train_years, train$TLB, test_years, tlb_test,
                         paste0("TLB Forecast 2013–2024 — ", tlb_final$label),
-                        "Total live births", "figures/bj_step4_forecast_tlb.png",
+                        "Total live births", "plots/bj_step4_forecast_tlb.png",
                         subtitle = "Refined final (Step 3c): seasonal difference added to the base",
                         mark_dragon2012 = TRUE)
-cat("Wrote figures/bj_step4_forecast_tfr.png and bj_step4_forecast_tlb.png\n")
+cat("Wrote plots/bj_step4_forecast_tfr.png and bj_step4_forecast_tlb.png\n")
 cat("TFR forecast all positive:", all(fc_tfr$mean > 0), "; min lower 95% =",
     round(min(fc_tfr$lower[, 2]), 3), "\n")
 
@@ -438,12 +438,12 @@ compare_plot <- function(fit_hi, fit_par, hist_years, hist_vals, fc_years, actua
 compare_plot(tfr_s1$fit, tfr_final$fit, train_years, train$TFR, test_years, tfr_test,
              "base (12,1,0)(1,0,0)", paste0("refined ", sub("^log-SARIMA", "", tfr_final$label)),
              "TFR forecast — seasonal-AR base vs refined final (Step 3c)",
-             "TFR (children per woman)", "figures/bj_step4_compare_tfr.png")
+             "TFR (children per woman)", "plots/bj_step4_compare_tfr.png")
 compare_plot(tlb_s0$fit, tlb_final$fit, train_years, train$TLB, test_years, tlb_test,
              "base (13,1,0)(1,0,0)", paste0("refined ", sub("^SARIMA", "", tlb_final$label)),
              "TLB forecast — seasonal-AR base vs refined final (Step 3c)",
-             "Total live births", "figures/bj_step4_compare_tlb.png")
-cat("Wrote figures/bj_step4_compare_tfr.png and bj_step4_compare_tlb.png\n")
+             "Total live births", "plots/bj_step4_compare_tlb.png")
+cat("Wrote plots/bj_step4_compare_tfr.png and bj_step4_compare_tlb.png\n")
 
 cmp_row <- function(fit, lab, test, biasadj = FALSE) {
   fc <- forecast(fit, h = length(test), biasadj = biasadj); acc <- accuracy(fc, test)

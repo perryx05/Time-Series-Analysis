@@ -38,15 +38,15 @@ tfr_init <- rep1(tfr_s12,12,0,tfr_test,"TFR INITIAL SARIMA(12,1,0)(1,1,0)[12]")
 tfr_fin  <- rep1(tfr_s12, 4,0,tfr_test,"TFR FINAL   SARIMA(4,1,0)(1,1,0)[12]")
 
 # ---- Fig 3: residual ACFs of the two INITIAL (high-order) models ------------
-png("methods/fr2_fig3_initial_resid_acf.png", width=1180, height=470, res=130, bg="white")
+png("plots/fr2_fig3_initial_resid_acf.png", width=1180, height=470, res=130, bg="white")
 par(mfrow=c(1,2), mar=c(4.2,4.5,3.4,1))
 acf(as.numeric(residuals(tfr_init)), lag.max=24, main="TFR initial: log-SARIMA(12,1,0)(1,1,0)[12]")
 acf(as.numeric(residuals(tlb_init)), lag.max=24, main="TLB initial: SARIMA(13,1,0)(1,1,0)[12]")
-dev.off(); cat("\nwrote methods/fr2_fig3_initial_resid_acf.png\n")
+dev.off(); cat("\nwrote plots/fr2_fig3_initial_resid_acf.png\n")
 
 # ---- Fig 5: TLB FINAL (4,1,0)(1,1,0) checkresiduals -------------------------
-png("methods/fr2_fig5_resid_tlb.png", width=980, height=720, res=120, bg="white")
-suppressWarnings(checkresiduals(tlb_fin)); dev.off(); cat("wrote methods/fr2_fig5_resid_tlb.png\n")
+png("plots/fr2_fig5_resid_tlb.png", width=980, height=720, res=120, bg="white")
+suppressWarnings(checkresiduals(tlb_fin)); dev.off(); cat("wrote plots/fr2_fig5_resid_tlb.png\n")
 
 # ---- Fig 7: TLB FINAL (4,1,0)(1,1,0) forecast ------------------------------
 fc<-forecast(tlb_fin,h=length(tlb_test),biasadj=FALSE)
@@ -68,4 +68,4 @@ p<-ggplot()+
   annotate("point",x=2024,y=fc_df$Actual[fc_df$Year==2024],colour="forestgreen",size=2.4)+
   annotate("text",x=2024,y=fc_df$Actual[fc_df$Year==2024],label="2024 (Dragon)",colour="forestgreen",size=2.9,hjust=1.1,vjust=1.4)+
   labs(title="TLB forecast 2013-2024 - SARIMA(4,1,0)(1,1,0)[12]",x="Year",y="Total live births")+theme_bw()
-ggsave("methods/fr2_fig7_forecast_tlb.png",p,width=9,height=5,dpi=130); cat("wrote methods/fr2_fig7_forecast_tlb.png\n")
+ggsave("plots/fr2_fig7_forecast_tlb.png",p,width=9,height=5,dpi=130); cat("wrote plots/fr2_fig7_forecast_tlb.png\n")

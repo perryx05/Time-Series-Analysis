@@ -61,7 +61,7 @@ cat("TLB ARIMA(13,1,0)    :", sigc(tlb_init), "\n")
 # FIG 3 — residual ACF of the two INITIAL high-order ARIMA models (clean band,
 #         formal LB marginal). 2 panels.
 # =============================================================================
-png("figures/fr2_fig3_initial_resid_acf.png", width = 1180, height = 470, res = 130, bg = "white")
+png("plots/fr2_fig3_initial_resid_acf.png", width = 1180, height = 470, res = 130, bg = "white")
 par(mfrow = c(1,2), mar = c(4.2,4.5,3.4,1))
 r1 <- as.numeric(residuals(tfr_init)); r3 <- as.numeric(residuals(tlb_init))
 acf(r1[is.finite(r1)], lag.max = 24, main = "Initial TFR: log-ARIMA(15,1,0)")
@@ -71,9 +71,9 @@ dev.off(); cat("\nwrote fr2_fig3_initial_resid_acf.png\n")
 # =============================================================================
 # FIG 4 & 5 — checkresiduals 4-panel for the IMPROVED models
 # =============================================================================
-png("figures/fr2_fig4_resid_tfr.png", width = 980, height = 720, res = 120, bg = "white")
+png("plots/fr2_fig4_resid_tfr.png", width = 980, height = 720, res = 120, bg = "white")
 suppressWarnings(checkresiduals(tfr_impr)); dev.off(); cat("wrote fr2_fig4_resid_tfr.png\n")
-png("figures/fr2_fig5_resid_tlb.png", width = 980, height = 720, res = 120, bg = "white")
+png("plots/fr2_fig5_resid_tlb.png", width = 980, height = 720, res = 120, bg = "white")
 suppressWarnings(checkresiduals(tlb_impr)); dev.off(); cat("wrote fr2_fig5_resid_tlb.png\n")
 
 # =============================================================================
@@ -107,8 +107,8 @@ fc_gg <- function(fit, hist_vals, obs, title, ylab, fname, dragon2024=TRUE) {
   cat("wrote", fname, "\n")
 }
 fc_gg(tfr_impr, train$TFR, tfr_test, "TFR forecast 2013-2024 - log-SARIMA(4,1,0)(1,1,0)[12]",
-      "TFR (children per woman)", "figures/fr2_fig6_forecast_tfr.png")
+      "TFR (children per woman)", "plots/fr2_fig6_forecast_tfr.png")
 fc_gg(tlb_impr, train$TLB, tlb_test, "TLB forecast 2013-2024 - SARIMA(4,1,0)(1,1,0)[12]",
-      "Total live births", "figures/fr2_fig7_forecast_tlb.png")
+      "Total live births", "plots/fr2_fig7_forecast_tlb.png")
 
 cat("\nDONE\n")

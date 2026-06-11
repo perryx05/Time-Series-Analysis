@@ -66,7 +66,7 @@ diagnose <- function(series, order, seasonal = c(0,0,0), lambda = NULL,
               paste(cross24, collapse = ","), paste(cross36, collapse = ","),
               rmse, mae, mape, status))
   if (!is.null(plot_tag)) {
-    fn <- sprintf("methods/im_%s_resid.png", plot_tag)
+    fn <- sprintf("plots/im_%s_resid.png", plot_tag)
     png(fn, width = 1000, height = 460, res = 110, bg = "white")
     par(mfrow = c(1, 2), mar = c(4, 4.5, 3.2, 1))
     acf(r,  lag.max = 36, main = paste("Residual ACF —", label))
@@ -102,7 +102,7 @@ sd_log_tfr <- diff(log(as.numeric(tfr_t1)), lag = 12)
 sd_tlb     <- diff(as.numeric(tlb_t1),       lag = 12)
 dcheck(sd_log_tfr, "seas-diff log(TFR)")
 dcheck(sd_tlb,     "seas-diff TLB")
-png("methods/im_step0_seasdiff.png", width = 1000, height = 420, res = 110, bg = "white")
+png("plots/im_step0_seasdiff.png", width = 1000, height = 420, res = 110, bg = "white")
 par(mfrow = c(1, 2), mar = c(4, 4.5, 3, 1))
 plot(sd_log_tfr, type = "l", lwd = 2, col = "firebrick3",
      main = "Seas-diff log(TFR)  (lag 12)", xlab = "index", ylab = ""); abline(h = 0, lty = 3)
@@ -155,7 +155,7 @@ say("TLB initial",  tlb_init); say("TLB improved", tlb_impr)
 # =============================================================================
 # FORECAST PLOTS for the four selected models
 # =============================================================================
-rule("FORECAST PLOTS -> methods/im_*_forecast.png")
+rule("FORECAST PLOTS -> plots/im_*_forecast.png")
 fc_plot <- function(m, hist_years, hist_vals, ylab, fname, title) {
   if (is.null(m)) return(invisible())
   fc <- m$fc
@@ -178,7 +178,7 @@ fc_plot <- function(m, hist_years, hist_vals, ylab, fname, title) {
          lwd = c(2,2,2,8), lty = c(1,2,1,1), bty = "n", cex = 0.85)
   dev.off(); cat("  wrote", fname, "\n")
 }
-fc_plot(tfr_init, train$Year, train$TFR, "TFR", "methods/im_tfr_initial_forecast.png", paste0("TFR initial — ", tfr_init$label))
-fc_plot(tfr_impr, train$Year, train$TFR, "TFR", "methods/im_tfr_improved_forecast.png", paste0("TFR improved — ", tfr_impr$label))
-fc_plot(tlb_init, train$Year, train$TLB, "TLB", "methods/im_tlb_initial_forecast.png", paste0("TLB initial — ", tlb_init$label))
-fc_plot(tlb_impr, train$Year, train$TLB, "TLB", "methods/im_tlb_improved_forecast.png", paste0("TLB improved — ", tlb_impr$label))
+fc_plot(tfr_init, train$Year, train$TFR, "TFR", "plots/im_tfr_initial_forecast.png", paste0("TFR initial — ", tfr_init$label))
+fc_plot(tfr_impr, train$Year, train$TFR, "TFR", "plots/im_tfr_improved_forecast.png", paste0("TFR improved — ", tfr_impr$label))
+fc_plot(tlb_init, train$Year, train$TLB, "TLB", "plots/im_tlb_initial_forecast.png", paste0("TLB initial — ", tlb_init$label))
+fc_plot(tlb_impr, train$Year, train$TLB, "TLB", "plots/im_tlb_improved_forecast.png", paste0("TLB improved — ", tlb_impr$label))

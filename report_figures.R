@@ -1,7 +1,7 @@
 # =============================================================================
 # REPORT FIGURES: Singapore TLB & TFR Time Series Analysis
 # Generates 12 publication-quality figures + model diagnostics
-# Output: figures/ subfolder, res = 150 dpi
+# Output: plots/ subfolder, res = 150 dpi
 # =============================================================================
 
 library(tseries)
@@ -38,7 +38,7 @@ ci_band <- function(n) 1.96 / sqrt(n)
 # =============================================================================
 # FIG 1: TLB Raw Series (1960-2024)
 # =============================================================================
-png("figures/fig01_tlb_raw.png", width = 1050, height = 560, res = 150, bg = "white")
+png("plots/fig01_tlb_raw.png", width = 1050, height = 560, res = 150, bg = "white")
 par(mar = c(5, 6, 4, 2), bg = "white")
 plot(tlb_ts, type = "l", lwd = 2, col = "black",
      main = "Fig 1: Singapore Total Live Births (1960–2024)",
@@ -60,7 +60,7 @@ dev.off()
 # =============================================================================
 # FIG 2: TFR Raw Series (1960-2024)
 # =============================================================================
-png("figures/fig02_tfr_raw.png", width = 1050, height = 560, res = 150, bg = "white")
+png("plots/fig02_tfr_raw.png", width = 1050, height = 560, res = 150, bg = "white")
 par(mar = c(5, 6, 4, 2), bg = "white")
 plot(tfr_ts, type = "l", lwd = 2, col = "black",
      main = "Fig 2: Singapore Total Fertility Rate (1960–2024)",
@@ -82,7 +82,7 @@ dev.off()
 ma5_tlb <- stats::filter(tlb_train, rep(1 / 5, 5), sides = 2)
 irr_tlb <- ts(as.numeric(tlb_train) - as.numeric(ma5_tlb), start = 1960, frequency = 1)
 
-png("figures/fig03_tlb_ma.png", width = 1050, height = 720, res = 150, bg = "white")
+png("plots/fig03_tlb_ma.png", width = 1050, height = 720, res = 150, bg = "white")
 par(mfrow = c(2, 1), mar = c(2, 6, 3, 2), bg = "white", oma = c(3, 0, 0, 0))
 plot(tlb_train, type = "l", lwd = 1.5, col = "gray60",
      main = "Fig 3 (top): TLB with 5-Year Centred MA — Training (1960–2012)",
@@ -108,7 +108,7 @@ dev.off()
 ma5_tfr <- stats::filter(tfr_train, rep(1 / 5, 5), sides = 2)
 irr_tfr <- ts(as.numeric(tfr_train) - as.numeric(ma5_tfr), start = 1960, frequency = 1)
 
-png("figures/fig04_tfr_ma.png", width = 1050, height = 720, res = 150, bg = "white")
+png("plots/fig04_tfr_ma.png", width = 1050, height = 720, res = 150, bg = "white")
 par(mfrow = c(2, 1), mar = c(2, 6, 3, 2), bg = "white", oma = c(3, 0, 0, 0))
 plot(tfr_train, type = "l", lwd = 1.5, col = "gray60",
      main = "Fig 4 (top): TFR with 5-Year Centred MA — Training (1960–2012)",
@@ -147,7 +147,7 @@ cat("\nTLB diff: max =", max(tlb_diff1), "in", tlb_max_yr,
 cat("TFR diff: max =", max(tfr_diff1), "in", tfr_max_yr,
     " | min =", min(tfr_diff1), "in", tfr_min_yr, "\n")
 
-png("figures/fig05_diff_series.png", width = 1050, height = 700, res = 150, bg = "white")
+png("plots/fig05_diff_series.png", width = 1050, height = 700, res = 150, bg = "white")
 par(mfrow = c(2, 1), mar = c(2, 7, 3.5, 2), bg = "white", oma = c(3, 0, 0, 0))
 
 plot(tlb_diff1, type = "l", lwd = 1.5, col = "black",
@@ -180,7 +180,7 @@ dev.off()
 # FIG 6: ACF/PACF of diff(TLB_train) — lag 20 (FIXED)
 # =============================================================================
 ci_tlb <- ci_band(length(tlb_diff1))
-png("figures/fig06_tlb_diff_acf_pacf.png", width = 1050, height = 560, res = 150, bg = "white")
+png("plots/fig06_tlb_diff_acf_pacf.png", width = 1050, height = 560, res = 150, bg = "white")
 par(mfrow = c(1, 2), mar = c(4, 5, 3, 1), oma = c(0, 0, 3, 0), bg = "white")
 acf(tlb_diff1,  lag.max = 20,
     main = "ACF",
@@ -197,7 +197,7 @@ dev.off()
 # FIG 7: ACF/PACF of diff(TFR_train) — lag 20 (FIXED)
 # =============================================================================
 ci_tfr <- ci_band(length(tfr_diff1))
-png("figures/fig07_tfr_diff_acf_pacf.png", width = 1050, height = 560, res = 150, bg = "white")
+png("plots/fig07_tfr_diff_acf_pacf.png", width = 1050, height = 560, res = 150, bg = "white")
 par(mfrow = c(1, 2), mar = c(4, 5, 3, 1), oma = c(0, 0, 3, 0), bg = "white")
 acf(tfr_diff1,  lag.max = 20,
     main = "ACF",
@@ -274,7 +274,7 @@ bl_tbest_20 <- Box.test(resid_tbest, lag = 20, type = "Ljung-Box")
 cat(sprintf("\nBEST TLB BL10: p=%.4f  BL20: p=%.4f\n",
             bl_tbest_10$p.value, bl_tbest_20$p.value))
 
-png("figures/fig09_tlb_best_resid_acfpacf.png", width = 1050, height = 560, res = 150, bg = "white")
+png("plots/fig09_tlb_best_resid_acfpacf.png", width = 1050, height = 560, res = 150, bg = "white")
 par(mfrow = c(1, 2), mar = c(4, 5, 3, 1), oma = c(0, 0, 3, 0), bg = "white")
 acf(resid_tbest,  lag.max = 20,
     main = "ACF",
@@ -296,7 +296,7 @@ bl_fbest_20 <- Box.test(resid_fbest, lag = 20, type = "Ljung-Box")
 cat(sprintf("BEST TFR BL10: p=%.4f  BL20: p=%.4f\n",
             bl_fbest_10$p.value, bl_fbest_20$p.value))
 
-png("figures/fig10_tfr_best_resid_acfpacf.png", width = 1050, height = 560, res = 150, bg = "white")
+png("plots/fig10_tfr_best_resid_acfpacf.png", width = 1050, height = 560, res = 150, bg = "white")
 par(mfrow = c(1, 2), mar = c(4, 5, 3, 1), oma = c(0, 0, 3, 0), bg = "white")
 acf(resid_fbest,  lag.max = 20,
     main = "ACF",
@@ -352,7 +352,7 @@ train_window_start <- 1995   # show from 1995 for context
 ylim_tlb_fc <- range(c(as.numeric(window(tlb_ts, start = train_window_start)),
                         tlb_lo95, tlb_hi95)) * c(0.92, 1.04)
 
-png("figures/fig11_tlb_forecast.png", width = 1050, height = 580, res = 150, bg = "white")
+png("plots/fig11_tlb_forecast.png", width = 1050, height = 580, res = 150, bg = "white")
 par(mar = c(5, 6, 4, 2), bg = "white")
 plot(window(tlb_ts, start = train_window_start), type = "l", lwd = 2, col = "black",
      xlim = c(train_window_start, 2024), ylim = ylim_tlb_fc,
@@ -395,7 +395,7 @@ dev.off()
 ylim_tfr_fc <- range(c(as.numeric(window(tfr_ts, start = train_window_start)),
                         tfr_lo95, tfr_hi95)) * c(0.88, 1.06)
 
-png("figures/fig12_tfr_forecast.png", width = 1050, height = 580, res = 150, bg = "white")
+png("plots/fig12_tfr_forecast.png", width = 1050, height = 580, res = 150, bg = "white")
 par(mar = c(5, 6, 4, 2), bg = "white")
 plot(window(tfr_ts, start = train_window_start), type = "l", lwd = 2, col = "black",
      xlim = c(train_window_start, 2024), ylim = ylim_tfr_fc,
@@ -477,4 +477,4 @@ print(m_TBEST$coef)
 cat("TFR SARIMA(1,1,0)(1,0,0)[12] coefficients:\n")
 print(m_FBEST$coef)
 
-cat("\nAll figures saved to figures/ directory.\n")
+cat("\nAll figures saved to plots/ directory.\n")
